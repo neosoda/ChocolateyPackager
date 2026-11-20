@@ -34,7 +34,7 @@ public static class PackageValidator
             foreach (var entry in zip.Entries)
             {
                 var name = entry.FullName;
-                if (name.StartsWith('/', StringComparison.Ordinal) ||
+                if (name.StartsWith("/", StringComparison.Ordinal) ||
                     name.Contains('\\') ||
                     name.Split('/').Any(x => x == ".." || x == ".") ||
                     name.Contains(':'))
