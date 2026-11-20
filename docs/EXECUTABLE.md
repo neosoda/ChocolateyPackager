@@ -36,7 +36,7 @@ Le workflow `.github/workflows/windows-single-exe.yml` fonctionne **manuellement
 
 Il compile sur Windows, vérifie la présence d'un unique fichier EXE, exécute le test non destructif et publie un artefact téléchargeable nommé ChocolateyPackager-win-x64.
 
-**L'EXE n'est pas considéré construit ou validé tant qu'une compilation Windows réelle n'a pas réussi.**
+**Build Windows exécuté avec succès le 20 novembre 2026 :** [workflow 44768595865](https://github.com/neosoda/ChocolateyPackager/actions/runs/44768595865), un unique EXE produit et test intégré terminé sur `RESULT: PASS`. Cela ne valide pas une installation réelle avec Chocolatey.
 
 ## État de la migration
 
