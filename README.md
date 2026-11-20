@@ -109,7 +109,7 @@ Le paquet contient notamment `identifiant.nuspec`, `tools/chocolateyInstall.ps1`
 
 Pour approfondir : [documentation officielle de création des packages Chocolatey](https://docs.chocolatey.org/en-us/create/create-packages/), [validation des packages](docs/VALIDATION.md) et [version anglaise du README](README.en.md).
 
-## Limites de la version 0.3.0
+## Limites et points à tester
 
 - **Un EXE n'a pas de paramètre silencieux universel.** Une signature d'installateur permet une suggestion, pas une garantie. Si le moteur est inconnu, il faut vérifier la documentation de l'éditeur.
 - Les installateurs qui téléchargent des fichiers pendant leur exécution nécessitent toujours une connexion réseau : les intégrer dans un `.nupkg` ne les rend pas autonomes.
@@ -126,4 +126,4 @@ Pour approfondir : [documentation officielle de création des packages Chocolate
 
 Pour signaler un problème ou proposer une amélioration : [GitHub Issues](https://github.com/neosoda/ChocolateyPackager/issues).
 
-<sub>Projet indépendant, sans affiliation avec Chocolatey Software. Version **0.3.0 bêta** : à valider sur machine de test avant tout déploiement.</sub>
+<sub>Projet indépendant, sans affiliation avec Chocolatey Software. Version **0.4.0-beta.1** (EXE autonome), scripts historiques v0.3.0 : à valider sur machine de test avant tout déploiement.</sub>
