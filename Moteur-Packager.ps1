@@ -80,7 +80,7 @@ if (-not (Test-Path -LiteralPath $OutputDirectory -PathType Container)) { throw 
 
 $analysis = Get-CMILInstallerAnalysis -Path $Installer
 if ($analysis.Signature -eq 'HashMismatch') { throw 'Signature Authenticode corrompue, paquet refuse.' }
-if ([string]::IsNullOrWhiteSpace($Authors)) { $Authors = if ($analysis.Publisher) { $analysis.Publisher } else { 'Interne' } }
+if ([string]::IsNullOrWhiteSpace($Authors)) { if ($analysis.Publisher) { $Authors = $analysis.Publisher } else { $Authors = 'Interne' } }
 if ([string]::IsNullOrWhiteSpace($Description)) { $Description = 'Paquet interne avec installateur embarque. Test en VM requis avant diffusion.' }
 if ($analysis.Type -eq 'exe' -and [string]::IsNullOrWhiteSpace($SilentArgs)) {
     throw 'Arguments silencieux EXE absents. Analyser puis valider avant la publication.'
