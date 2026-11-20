@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Créer un package Chocolatey MSI/EXE | Chocolatey Packager Windows</title>
+  <meta name="description" content="Créez un package Chocolatey .nupkg depuis un EXE ou MSI avec une interface Windows. Analyse des installateurs, arguments silencieux et validation statique.">
+  <meta name="robots" content="index,follow">
+  <meta name="theme-color" content="#10223f">
+  <link rel="canonical" href="https://neosoda.github.io/ChocolateyPackager/fr.html">
+  <link rel="alternate" hreflang="fr" href="https://neosoda.github.io/ChocolateyPackager/fr.html">
+  <link rel="alternate" hreflang="en" href="https://neosoda.github.io/ChocolateyPackager/">
+  <link rel="alternate" hreflang="x-default" href="https://neosoda.github.io/ChocolateyPackager/">
+  <link rel="stylesheet" href="./site.css">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="fr_FR">
+  <meta property="og:title" content="Chocolatey Packager — créer un package Chocolatey sur Windows">
+  <meta property="og:description" content="Transformez un installateur MSI ou EXE en package Chocolatey .nupkg depuis une interface graphique Windows.">
+  <meta property="og:url" content="https://neosoda.github.io/ChocolateyPackager/fr.html">
+  <meta name="twitter:card" content="summary">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Chocolatey Packager",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Windows 10, Windows 11, Windows Server",
+    "softwareVersion": "0.3.0",
+    "description": "Outil graphique portable pour créer et vérifier des packages Chocolatey à partir de fichiers MSI et EXE.",
+    "url": "https://neosoda.github.io/ChocolateyPackager/fr.html",
+    "downloadUrl": "https://github.com/neosoda/ChocolateyPackager/archive/refs/heads/main.zip",
+    "codeRepository": "https://github.com/neosoda/ChocolateyPackager",
+    "isAccessibleForFree": true
+  }
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main">Aller au contenu</a>
+  <header class="site-header container">
+    <a class="brand" href="fr.html" aria-label="Accueil de Chocolatey Packager"><span class="logo" aria-hidden="true">CP</span> Chocolatey Packager</a>
+    <nav aria-label="Navigation principale">
+      <a href="#fonctionnalites">Fonctionnalités</a>
+      <a href="#demarrage">Démarrage</a>
+      <a href="#questions">FAQ</a>
+      <a href="./" lang="en" hreflang="en">English</a>
+      <a href="https://github.com/neosoda/ChocolateyPackager">GitHub</a>
+    </nav>
+  </header>
+  <main id="main">
+    <section class="hero container">
+      <p class="eyebrow">WINDOWS · PORTABLE · SANS CLOUD</p>
+      <h1>Créez vos packages Chocolatey depuis des <span>installateurs MSI et EXE.</span></h1>
+      <p class="lead">Chocolatey Packager est un générateur graphique de packages Chocolatey pour Windows. Sélectionnez un installateur, vérifiez les informations et les paramètres silencieux, puis générez un fichier <code>.nupkg</code> à stocker sur votre poste ou votre dépôt réseau.</p>
+      <div class="actions">
+        <a class="button primary" href="https://github.com/neosoda/ChocolateyPackager/archive/refs/heads/main.zip">Télécharger le projet ZIP</a>
+        <a class="button secondary" href="https://github.com/neosoda/ChocolateyPackager#readme">Voir le code et la documentation</a>
+      </div>
+      <p class="notice">Bêta v0.3.0 · Windows PowerShell 5.1 · Chocolatey n'est pas nécessaire pour <em>créer</em> les packages. Testez l'installation sur une VM Windows avant déploiement.</p>
+    </section>
+    <section class="section container" id="fonctionnalites">
+      <h2>Un créateur de packages Chocolatey avec interface graphique</h2>
+      <div class="features">
+        <article><h3>Analyse des fichiers MSI et EXE</h3><p>Lecture des propriétés MSI et recherche de signatures dans les EXE, sans exécuter l'installateur inconnu.</p></article>
+        <article><h3>Paramètres d'installation silencieuse</h3><p>Suggestions pour plusieurs moteurs courants, avec vérification manuelle nécessaire en cas d'incertitude.</p></article>
+        <article><h3>Génération de fichiers .nupkg</h3><p>Création d'un manifeste NuSpec, d'un script Chocolatey et d'un package contenant l'installateur.</p></article>
+        <article><h3>Validation statique et SHA-256</h3><p>Vérifications de structure, de syntaxe PowerShell, de métadonnées XML et d'intégrité du binaire embarqué.</p></article>
+      </div>
+    </section>
+    <section class="section steps container" id="demarrage">
+      <h2>Comment créer un package Chocolatey à partir d'un EXE ou d'un MSI ?</h2>
+      <ol>
+        <li>Téléchargez le ZIP du dépôt et décompressez tous les fichiers sous Windows.</li>
+        <li>Ouvrez <code>Start.cmd</code> et sélectionnez votre installateur <code>.exe</code> ou <code>.msi</code>.</li>
+        <li>Vérifiez le nom, la version, l'éditeur et les paramètres d'installation silencieuse.</li>
+        <li>Choisissez le dossier de destination puis générez le package <code>.nupkg</code>.</li>
+        <li>Testez une installation réelle sur une VM Windows avant tout déploiement.</li>
+      </ol>
+      <p><a href="https://github.com/neosoda/ChocolateyPackager/blob/main/docs/VALIDATION.md">Lire le guide de validation des packages</a></p>
+    </section>
+    <section class="section container" id="questions">
+      <h2>Questions fréquentes</h2>
+      <div class="faq">
+        <h3>Faut-il installer Chocolatey pour fabriquer un package ?</h3>
+        <p>Non. L'outil utilise Windows PowerShell 5.1 sur le poste de création. Chocolatey doit être présent sur les postes qui installeront le package.</p>
+        <h3>Peut-on convertir n'importe quel EXE en installation silencieuse ?</h3>
+        <p>Non. Les arguments suggérés ne sont pas garantis. Consultez la documentation de l'éditeur et testez les paramètres sur une VM.</p>
+        <h3>Un package valide est-il prêt à déployer ?</h3>
+        <p>Pas forcément. Le validateur vérifie la structure et l'intégrité du package, mais pas la réussite d'une installation, d'une mise à jour ou d'une désinstallation.</p>
+        <h3>Peut-on créer un dépôt de logiciels interne ?</h3>
+        <p>Oui, les fichiers peuvent être exportés sur un disque local ou un partage réseau, dans le respect des droits de redistribution des logiciels.</p>
+      </div>
+    </section>
+  </main>
+  <footer class="container footer">
+    <p>Chocolatey Packager est un projet communautaire indépendant, non affilié à Chocolatey Software. Vérifiez les droits de redistribution des installateurs tiers.</p>
+    <p><a href="https://github.com/neosoda/ChocolateyPackager">Code source</a> · <a href="https://github.com/neosoda/ChocolateyPackager/issues">Problèmes et suggestions</a> · <a href="./" lang="en">English version</a></p>
+  </footer>
+</body>
+</html>
