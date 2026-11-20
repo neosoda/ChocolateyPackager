@@ -64,7 +64,7 @@ function Show-Analysis {
     $script:txtId.Text = $Analysis.Id
     $script:txtVersion.Text = $Analysis.Version
     $script:txtArgs.Text = $Analysis.SilentArgs
-    if ($Analysis.Publisher) { $script:txtPublisher.Text = $Analysis.Publisher } else { $script:txtPublisher.Text = 'Interne' }
+    if ($Analysis.Publisher) { $script:txtPublisher.Text = $Analysis.Publisher } else { $script:txtPublisher.Text = 'Package maintainer' }
     $script:txtDescription.Text = 'Paquet deploiement pour ' + $Analysis.Name + '. A tester sur VM avant toute diffusion.'
     $script:txtProjectUrl.Text = ''
     $script:lblEngine.Text = 'Moteur : ' + $Analysis.Engine
@@ -235,7 +235,7 @@ $script:btnCreate.Add_Click({
     $file = $script:txtInstaller.Text.Trim()
     if (-not $script:CurrentAnalysis -or $script:CurrentAnalysis.Path -ne $file) { Show-Problem 'Analysez d abord le fichier choisi.'; return }
     if (-not (Test-Path -LiteralPath $script:Engine -PathType Leaf)) { Show-Problem 'PackageBuilder.ps1 est absent du dossier. Decompressez toute l archive.'; return }
-    if ($id -cnotmatch '^[a-z0-9][a-z0-9._-]{0,79}
+    if ($id -cnotmatch '^[a-z0-9][a-z0-9._-]{0,79}$') { Show-Problem 'ID incorrect : 1 a 80 caracteres, lettres minuscules, chiffres, points, tirets ou underscores.'; return }
     if ($ver -cnotmatch '^\d+\.\d+(\.\d+){0,2}(-[0-9A-Za-z.-]+)?$') { Show-Problem 'Version invalide (ex : 1.4.1.1032).'; return }
     if ($args -match '[\r\n]') { Show-Problem 'Arguments sur une seule ligne.'; return }
     if ([string]::IsNullOrWhiteSpace($authors) -or [string]::IsNullOrWhiteSpace($description)) { Show-Problem 'Editeur et description obligatoires.'; return }
@@ -263,48 +263,6 @@ $script:btnCreate.Add_Click({
         $script:lblStatus.ForeColor = [Drawing.Color]::FromArgb(37,118,67)
         $script:lblStatus.Text = 'PAQUET CREE ET VALIDE STATIQUEMENT : ' + $result.PackagePath
         $prompt = "Paquet valide structurellement :`r`n$($result.PackagePath)`r`n`r`nIdentifiant : $id`r`nDossier : $depot`r`n`r`nTester l'installation avec Chocolatey avant diffusion.`r`n`r`nAfficher le dossier ?"
-        if ([Windows.Forms.MessageBox]::Show($prompt,'Paquet cree','YesNo','Information') -eq [Windows.Forms.DialogResult]::Yes) {
-            Start-Process explorer.exe -ArgumentList ('/select,"' + $result.PackagePath + '"')
-        }
-    } catch {
-        $script:lblStatus.ForeColor = [Drawing.Color]::DarkRed
-        $script:lblStatus.Text = 'Echec de creation : ' + $_.Exception.Message
-        Show-Problem $_.Exception.Message
-    } finally {
-        $script:form.UseWaitCursor = $false
-        $script:btnCreate.Enabled = $true
-    }
-})
-
-[void]$script:form.ShowDialog()
-$script:form.Dispose()) { Show-Problem 'ID incorrect : 1 a 80 caracteres, lettres minuscules, chiffres, points, tirets ou underscores.'; return }
-    if ($ver -cnotmatch '^\d+\.\d+(\.\d+){0,2}(-[0-9A-Za-z.-]+)?$') { Show-Problem 'Version invalide (ex : 1.4.1.1032).'; return }
-    if ($args -match '[\r\n]') { Show-Problem 'Arguments sur une seule ligne.'; return }
-    if ([string]::IsNullOrWhiteSpace($authors) -or [string]::IsNullOrWhiteSpace($description)) { Show-Problem 'Editeur et description obligatoires.'; return }
-    if ($script:CurrentAnalysis.Type -eq 'exe' -and [string]::IsNullOrWhiteSpace($args)) { Show-Problem 'Arguments EXE inconnus : renseignez les options confirmees par l editeur.'; return }
-    if (-not (Test-Path -LiteralPath $depot -PathType Container)) {
-        $answer = [Windows.Forms.MessageBox]::Show("Le dossier n existe pas :`r`n$depot`r`n`r`nLe creer ?",'Depot inexistant','YesNo','Question')
-        if ($answer -ne [Windows.Forms.DialogResult]::Yes) { return }
-        try { $null = New-Item -ItemType Directory -Path $depot -Force } catch { Show-Problem $_.Exception.Message; return }
-    }
-    $targetFile = Join-Path $depot "$id.$ver.nupkg"
-    if (Test-Path -LiteralPath $targetFile) { Show-Problem "Paquet deja present :`r`n$targetFile`r`nIncrementer la version pour ne pas ecraser un paquet publie."; return }
-    if ($script:CurrentAnalysis.Signature -eq 'HashMismatch') { Show-Problem 'Signature de l installateur non valide : publication interdite.'; return }
-    if ($script:CurrentAnalysis.Type -eq 'exe') {
-        $text = "Moteur : $($script:CurrentAnalysis.Engine)`r`nArguments : $args`r`n`r`nLes options EXE sont des recommandations statiques, NON testees. Vous devrez essayer le paquet sur une VM avant diffusion.`r`n`r`nCreer le .nupkg ?"
-        if ([Windows.Forms.MessageBox]::Show($text,'Confirmation des options EXE','YesNo','Warning') -ne [Windows.Forms.DialogResult]::Yes) { return }
-    }
-    $script:btnCreate.Enabled = $false
-    $script:form.UseWaitCursor = $true
-    $script:lblStatus.Text = 'Creation et controles SHA256 en cours : ne fermez pas la fenetre...'
-    $script:form.Refresh()
-    try {
-        $result = & $script:Engine -Installer $file -Id $id -Version $ver -SilentArgs $args -Title $script:CurrentAnalysis.Name -Authors $authors -Description $description -ProjectUrl $projectUrl -Architecture $script:CurrentAnalysis.Architecture -OutputDirectory $depot
-        if (-not (Test-Path -LiteralPath $result.PackagePath -PathType Leaf)) { throw 'Le paquet a disparu apres sa creation.' }
-        $script:OutputPackage = $result.PackagePath
-        $script:lblStatus.ForeColor = [Drawing.Color]::FromArgb(37,118,67)
-        $script:lblStatus.Text = 'PAQUET CREE ET VALIDE STATIQUEMENT : ' + $result.PackagePath
-        $prompt = "Paquet valide structurellement :`r`n$($result.PackagePath)`r`n`r`nFOG : Package = $id`r`nSource = $depot`r`n`r`nTester ensuite sur VM-TEST avant diffusion.`r`n`r`nAfficher le dossier ?"
         if ([Windows.Forms.MessageBox]::Show($prompt,'Paquet cree','YesNo','Information') -eq [Windows.Forms.DialogResult]::Yes) {
             Start-Process explorer.exe -ArgumentList ('/select,"' + $result.PackagePath + '"')
         }
