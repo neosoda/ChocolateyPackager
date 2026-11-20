@@ -195,7 +195,7 @@ $script:btnValidate.Add_Click({
         $prefix = if ($result.IsValid) { 'VALIDATION STATIQUE REUSSIE' } else { 'VALIDATION ECHOUEE' }
         $script:txtDetails.Text = $prefix + "`r`n" + ($lines -join "`r`n")
         $script:lblStatus.Text = $prefix + ' : ' + $dialog.FileName + ' | Test reel en VM requis.'
-        $script:lblStatus.ForeColor = if ($result.IsValid) { [Drawing.Color]::DarkGreen } else { [Drawing.Color]::DarkRed }
+        if ($result.IsValid) { $script:lblStatus.ForeColor = [Drawing.Color]::DarkGreen } else { $script:lblStatus.ForeColor = [Drawing.Color]::DarkRed }
     } catch { Show-Problem $_.Exception.Message }
     finally { $dialog.Dispose() }
 })
