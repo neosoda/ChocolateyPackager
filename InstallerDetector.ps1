@@ -111,6 +111,7 @@ function Get-InstallerAnalysis {
     $warnings = New-Object 'System.Collections.Generic.List[string]'
     $signature = 'Non verifiee'
     $productCode = ''
+    $upgradeCode = ''
     $manufacturer = ''
 
     if ($extension -eq '.msi') {
@@ -118,6 +119,7 @@ function Get-InstallerAnalysis {
         $msiVersion = Get-MsiProperty -Path $Path -Property 'ProductVersion'
         $manufacturer = Get-MsiProperty -Path $Path -Property 'Manufacturer'
         $productCode = Get-MsiProperty -Path $Path -Property 'ProductCode'
+        $upgradeCode = Get-MsiProperty -Path $Path -Property 'UpgradeCode'
         if ([string]::IsNullOrWhiteSpace($productCode)) { throw 'Impossible de valider ce fichier MSI (ProductCode introuvable).' }
         if ($msiName) { $name = $msiName }
         if ($msiVersion -match '^\d+(?:\.\d+){1,3}$') { $version = $msiVersion }
@@ -196,7 +198,7 @@ function Get-InstallerAnalysis {
         Type = $extension.TrimStart('.'); Architecture = $architecture
         Engine = $engine; SilentArgs = $args; Confidence = $confidence
         Evidence = $evidence; Warnings = [string[]]$warnings.ToArray()
-        Signature = $signature; ProductCode = $productCode; Publisher = $manufacturer
+        Signature = $signature; ProductCode = $productCode; UpgradeCode = $upgradeCode; Publisher = $manufacturer
         SizeBytes = [long]$item.Length
     }
 }
