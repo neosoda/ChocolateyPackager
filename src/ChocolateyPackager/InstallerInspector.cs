@@ -61,18 +61,25 @@ public static class InstallerInspector
         {
             var machine = ReadPeMachine(file.FullName);
             if (machine == 0) throw new InvalidOperationException("EXE invalide : signature PE absente ou incorrecte.");
-            var info = FileVersionInfo.GetVersionInfo(file.FullName);
-            publisher = info.CompanyName ?? "";
-            if (string.IsNullOrWhiteSpace(version))
+            try
             {
-                foreach (var candidate in new[] { info.ProductVersion, info.FileVersion })
+                var info = FileVersionInfo.GetVersionInfo(file.FullName);
+                publisher = info.CompanyName ?? "";
+                if (string.IsNullOrWhiteSpace(version))
                 {
-                    var m = Regex.Match(candidate ?? "", @"^\s*(\d+\.\d+(?:\.\d+){0,2})");
-                    if (m.Success) { version = m.Groups[1].Value; break; }
+                    foreach (var candidate in new[] { info.ProductVersion, info.FileVersion })
+                    {
+                        var m = Regex.Match(candidate ?? "", @"^\s*(\d+\.\d+(?:\.\d+){0,2})");
+                        if (m.Success) { version = m.Groups[1].Value; break; }
+                    }
                 }
+                if (name.Equals(filename, StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(info.ProductName))
+                    name = info.ProductName;
             }
-            if (name.Equals(filename, StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(info.ProductName))
-                name = info.ProductName;
+            catch (Exception ex) when (ex is IOException or System.ComponentModel.Win32Exception or ArgumentException)
+            {
+                warnings.Add("Informations de version PE indisponibles ; vérifier les métadonnées manuellement.");
+            }
 
             var sample = ReadBoundedSample(file.FullName);
             if (Regex.IsMatch(filename, @"(?i)^everything(?:[-_. ]|$)"))
