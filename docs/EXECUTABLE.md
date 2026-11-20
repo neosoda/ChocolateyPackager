@@ -8,6 +8,12 @@ Le produit destiné aux utilisateurs est un **unique fichier ChocolateyPackager.
 
 **Attention :** Chocolatey utilise toujours `tools/chocolateyInstall.ps1` **à l'intérieur du fichier .nupkg créé**. Il s'agit du format de package Chocolatey, et non d'un script à distribuer à côté de l'EXE. Chocolatey doit être installé sur les postes cibles.
 
+## Télécharger la version compilée
+
+**[Télécharger ChocolateyPackager.exe v0.4.0-beta.1](https://github.com/neosoda/ChocolateyPackager/releases/download/v0.4.0-beta.1/ChocolateyPackager.exe)** · [Voir la release et le SHA-256](https://github.com/neosoda/ChocolateyPackager/releases/tag/v0.4.0-beta.1).
+
+La release a été publiée automatiquement après compilation et tests Windows réussis depuis `main`. Il s'agit d'une préversion non signée, à tester avant une diffusion à grande échelle.
+
 ## Compiler depuis Windows
 
 Prérequis pour le développeur uniquement : **SDK .NET 10** et Windows. Depuis la racine du dépôt :
@@ -32,9 +38,9 @@ Une validation supplémentaire doit être faite **manuellement sur une VM Window
 
 ## Compiler via GitHub (facultatif)
 
-Le workflow `.github/workflows/windows-single-exe.yml` fonctionne **manuellement** (Actions → Build Windows single EXE → Run workflow) ou **sur les Pull Requests qui modifient l'application C#**. Il ne se lance pas à chaque commit sur `main`.
+Le workflow `.github/workflows/windows-single-exe.yml` fonctionne manuellement, sur les Pull Requests qui modifient l'application C#, et sur les merges vers `main` concernant le code natif, le workflow ou la version. Le job de release ne publie automatiquement que depuis `main`, après un build et des tests réussis.
 
-Il compile sur Windows, vérifie la présence d'un unique fichier EXE, exécute le test non destructif et publie un artefact téléchargeable nommé ChocolateyPackager-win-x64.
+Il compile sur Windows, vérifie la présence d'un unique fichier EXE, exécute le test non destructif et publie l'EXE accompagné de son SHA-256 dans les GitHub Releases. Le workflow conserve également un artefact nommé ChocolateyPackager-win-x64.
 
 **Build Windows exécuté avec succès le 20 novembre 2026 :** [workflow 44768595865](https://github.com/neosoda/ChocolateyPackager/actions/runs/44768595865), un unique EXE produit et test intégré terminé sur `RESULT: PASS`. Cela ne valide pas une installation réelle avec Chocolatey.
 
