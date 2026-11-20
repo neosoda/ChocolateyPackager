@@ -6,11 +6,7 @@
   Controle le manifeste nuspec, les parties OPC, la syntaxe PowerShell et
   l'integrite de l'installateur quand un manifeste packager-info.json existe.
   Ne prouve PAS qu'une installation fonctionne : test en VM indispensable.
-.EXAMPLE
-  .\PackageValidator.ps1 -PackagePath 'C:\Packages\example.1.0.0.nupkg'
 #>
-[CmdletBinding()]
-param([string]$PackagePath)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -62,13 +58,11 @@ function Test-PackagerPackage {
             }
         }
 
-        # Une archive ZIP contenant un nuspec ne suffit pas : NuGet utilise une
-        # relation OPC racine vers son manifeste.
         $manifestRels = @($package.GetRelationshipsByType('http://schemas.microsoft.com/packaging/2010/07/manifest'))
         if ($manifestRels.Count -ne 1) {
             $issues.Add([pscustomobject]@{ Level='Erreur'; Code='RELATION'; Message='Relation NuGet du manifeste absente ou multiple.' })
         }
-        $nuspecs = @($parts | Where-Object { $_ -match '^[^/]+\.nuspec
+        $nuspecs = @($parts | Where-Object { $_ -match '^[^/]+\.nuspec$' })
         if ($nuspecs.Count -ne 1) {
             $issues.Add([pscustomobject]@{ Level='Erreur'; Code='NUSPEC'; Message='Un unique manifeste .nuspec racine est requis.' })
         } else {
@@ -76,115 +70,6 @@ function Test-PackagerPackage {
                 [Uri]::UnescapeDataString($manifestRels[0].TargetUri.OriginalString.TrimStart('/')) -cne $nuspecs[0]) {
                 $issues.Add([pscustomobject]@{ Level='Erreur'; Code='RELATION_TARGET'; Message='Relation NuGet vers un autre fichier que le nuspec.' })
             }
-            try {
-                $xmlText = Get-PackagePartText -Package $package -PartName $nuspecs[0]
-                $settings = New-Object Xml.XmlReaderSettings
-                $settings.DtdProcessing = [Xml.DtdProcessing]::Prohibit
-                $settings.XmlResolver = $null
-                $xmlReader = [Xml.XmlReader]::Create(([IO.StringReader]::new($xmlText)), $settings)
-                try {
-                    $xml = New-Object Xml.XmlDocument
-                    $xml.XmlResolver = $null
-                    $xml.Load($xmlReader)
-                } finally { $xmlReader.Dispose() }
-                $ns = [Xml.XmlNamespaceManager]::new($xml.NameTable)
-                $ns.AddNamespace('n', $xml.DocumentElement.NamespaceURI)
-                $meta = $xml.SelectSingleNode('/n:package/n:metadata', $ns)
-                if ($null -eq $meta) { throw 'Section metadata absente.' }
-                $idNode = $meta.SelectSingleNode('n:id', $ns)
-                $versionNode = $meta.SelectSingleNode('n:version', $ns)
-                $authors = $meta.SelectSingleNode('n:authors', $ns)
-                $description = $meta.SelectSingleNode('n:description', $ns)
-                if ($idNode) { $id = $idNode.InnerText.Trim() }
-                if ($versionNode) { $version = $versionNode.InnerText.Trim() }
-                if ($id -cnotmatch '^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$') {
-                    $issues.Add([pscustomobject]@{ Level='Erreur'; Code='ID'; Message="Identifiant Chocolatey invalide : $id" })
-                }
-                if ($version -notmatch '^\d+\.\d+(\.\d+){0,2}(-[0-9A-Za-z.-]+)?$') {
-                    $issues.Add([pscustomobject]@{ Level='Erreur'; Code='VERSION'; Message="Version invalide : $version" })
-                }
-                if (-not $authors -or [string]::IsNullOrWhiteSpace($authors.InnerText)) {
-                    $issues.Add([pscustomobject]@{ Level='Erreur'; Code='AUTHORS'; Message='Auteurs absents du nuspec.' })
-                }
-                if (-not $description -or [string]::IsNullOrWhiteSpace($description.InnerText)) {
-                    $issues.Add([pscustomobject]@{ Level='Erreur'; Code='DESCRIPTION'; Message='Description absente du nuspec.' })
-                }
-                $urlNode = $meta.SelectSingleNode('n:projectUrl', $ns)
-                if (-not $urlNode) {
-                    $issues.Add([pscustomobject]@{ Level='Conseil'; Code='PROJECT_URL'; Message='Ajouter le site officiel du logiciel si disponible.' })
-                } elseif ($urlNode.InnerText -notmatch '^https://') {
-                    $issues.Add([pscustomobject]@{ Level='Avertissement'; Code='PROJECT_URL'; Message='Une URL HTTPS est recommandee.' })
-                }
-            } catch {
-                $issues.Add([pscustomobject]@{ Level='Erreur'; Code='XML'; Message=$_.Exception.Message })
-            }
-        }
-
-        if ($parts -cnotcontains 'tools/chocolateyInstall.ps1') {
-            $issues.Add([pscustomobject]@{ Level='Erreur'; Code='SCRIPT'; Message='tools/chocolateyInstall.ps1 manquant.' })
-        } else {
-            try {
-                $scriptContent = Get-PackagePartText -Package $package -PartName 'tools/chocolateyInstall.ps1'
-                $tokens = $null; $parseErrors = $null
-                [void][Management.Automation.Language.Parser]::ParseInput($scriptContent, [ref]$tokens, [ref]$parseErrors)
-                foreach ($parseError in $parseErrors) {
-                    $issues.Add([pscustomobject]@{ Level='Erreur'; Code='POWERSHELL'; Message=$parseError.Message })
-                }
-                if ($scriptContent -match '(?i)\b(Invoke-Expression|iex)\b') {
-                    $issues.Add([pscustomobject]@{ Level='Avertissement'; Code='SCRIPT_RISK'; Message='Invoke-Expression detecte : revoir le script avant diffusion.' })
-                }
-            } catch {
-                $issues.Add([pscustomobject]@{ Level='Erreur'; Code='SCRIPT_READ'; Message=$_.Exception.Message })
-            }
-        }
-
-        if ($parts -ccontains 'tools/packager-info.json') {
-            try {
-                $info = Get-PackagePartText -Package $package -PartName 'tools/packager-info.json' | ConvertFrom-Json -ErrorAction Stop
-                if ([string]$info.id -cne $id -or [string]$info.version -cne $version) {
-                    $issues.Add([pscustomobject]@{ Level='Erreur'; Code='MANIFEST'; Message='Identite incoherente entre nuspec et packager-info.json.' })
-                }
-                $installerParts = @($parts | Where-Object { $_ -match '^tools/installer\.(exe|msi)$' })
-                if ($installerParts.Count -ne 1) {
-                    $issues.Add([pscustomobject]@{ Level='Erreur'; Code='INSTALLER'; Message='Installateur embarque manquant ou ambigu.' })
-                } elseif ([string]$info.originalSHA256 -notmatch '^[A-Fa-f0-9]{64}$') {
-                    $issues.Add([pscustomobject]@{ Level='Erreur'; Code='HASH_FORMAT'; Message='Empreinte SHA-256 absente ou invalide.' })
-                } elseif ((Get-PackagePartHash -Package $package -PartName $installerParts[0]) -cne ([string]$info.originalSHA256).ToUpperInvariant()) {
-                    $issues.Add([pscustomobject]@{ Level='Erreur'; Code='HASH_MISMATCH'; Message='Empreinte SHA-256 de l installateur differente du manifeste.' })
-                }
-                if ($installerParts.Count -eq 1 -and $installerParts[0] -eq 'tools/installer.exe' -and $parts -cnotcontains 'tools/installer.exe.ignore') {
-                    $issues.Add([pscustomobject]@{ Level='Avertissement'; Code='EXE_SHIM'; Message='installer.exe.ignore absent : risque de shim Chocolatey non souhaite.' })
-                }
-            } catch {
-                $issues.Add([pscustomobject]@{ Level='Erreur'; Code='MANIFEST_READ'; Message=$_.Exception.Message })
-            }
-        } else {
-            $issues.Add([pscustomobject]@{ Level='Conseil'; Code='NO_MANIFEST'; Message='Aucun packager-info.json : integrite interne non attestee par ce validateur.' })
-        }
-    } catch {
-        $issues.Add([pscustomobject]@{ Level='Erreur'; Code='PACKAGE_OPEN'; Message=$_.Exception.Message })
-    } finally {
-        if ($null -ne $package) { $package.Close() }
-    }
-    return [pscustomobject]@{
-        IsValid = (@($issues | Where-Object { $_.Level -eq 'Erreur' }).Count -eq 0)
-        Id = $id; Version = $version
-        Status = 'Validation statique uniquement. Installation Windows non testee.'
-        Issues = @($issues.ToArray())
-    }
-}
-
-if ($MyInvocation.InvocationName -ne '.') {
-    if ([string]::IsNullOrWhiteSpace($PackagePath)) { throw 'Preciser -PackagePath.' }
-    $result = Test-PackagerPackage -Path $PackagePath
-    $result | Format-List IsValid, Id, Version, Status
-    $result.Issues | Format-Table Level, Code, Message -AutoSize -Wrap
-    if (-not $result.IsValid) { exit 1 }
-}
- })
-        if ($nuspecs.Count -ne 1) {
-            $issues.Add([pscustomobject]@{ Level='Erreur'; Code='NUSPEC'; Message='Un unique manifeste .nuspec racine est requis.' })
-        } else {
             try {
                 $xmlText = Get-PackagePartText -Package $package -PartName $nuspecs[0]
                 $settings = New-Object Xml.XmlReaderSettings
