@@ -64,7 +64,7 @@ function Show-Analysis {
     $script:txtId.Text = $Analysis.Id
     $script:txtVersion.Text = $Analysis.Version
     $script:txtArgs.Text = $Analysis.SilentArgs
-    $script:txtPublisher.Text = if ($Analysis.Publisher) { $Analysis.Publisher } else { 'Interne' }
+    if ($Analysis.Publisher) { $script:txtPublisher.Text = $Analysis.Publisher } else { $script:txtPublisher.Text = 'Interne' }
     $script:txtDescription.Text = 'Paquet deploiement pour ' + $Analysis.Name + '. A tester sur VM avant toute diffusion.'
     $script:txtProjectUrl.Text = ''
     $script:lblEngine.Text = 'Moteur : ' + $Analysis.Engine
