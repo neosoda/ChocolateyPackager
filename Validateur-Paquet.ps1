@@ -283,10 +283,3 @@ if ($MyInvocation.InvocationName -ne '.') {
     }
 }
 
-if ($MyInvocation.InvocationName -ne '.') {
-    if ([string]::IsNullOrWhiteSpace($PackagePath)) { throw 'Preciser -PackagePath.' }
-    $result = Test-CMILPackage -Path $PackagePath
-    $result | Format-List IsValid, Id, Version, Status
-    $result.Issues | Format-Table Level, Code, Message -AutoSize -Wrap
-    if (-not $result.IsValid) { exit 1 }
-}
