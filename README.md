@@ -39,6 +39,20 @@ Le projet est né d'un besoin de **déploiement de logiciels sur un parc informa
 > [!IMPORTANT]
 > **Bêta v0.3.0.** La structure d'un paquet n'atteste pas qu'un logiciel s'installe ou se désinstalle correctement. Les paramètres EXE déduits de signatures doivent être confirmés avec la documentation de l'éditeur, puis testés sur une VM. Le générateur n'exécute jamais l'installateur pendant l'analyse.
 
+## 🧰 Nouveautés de la branche de développement
+
+Le parcours de création existant est conservé. L'interface permet maintenant de modifier **l'éditeur, la description et l'URL officielle HTTPS** du logiciel avant création. Ces informations sont inscrites dans le `.nuspec` avec échappement XML.
+
+Un **validateur indépendant** (`Validateur-Paquet.ps1`) est exécuté **avant publication** : présence du manifeste et du script d'installation, syntaxe PowerShell, métadonnées obligatoires, cohérence du manifeste interne et SHA-256 de l'installateur embarqué. Les problèmes bloquants interrompent la création ; les autres sont des avertissements ou conseils. Un bouton **Valider un .nupkg** permet aussi d'inspecter un paquet existant.
+
+Depuis Windows PowerShell 5.1 :
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\Validateur-Paquet.ps1" -PackagePath "C:\Packages\monlogiciel.1.0.0.nupkg"
+```
+
+Voir [Validation et tests réels](docs/VALIDATION.md) et [Références et licences](docs/REFERENCES.md). **Ces nouveautés n'ont pas encore été validées par un test Windows réel dans cette contribution.** Elles ne garantissent pas qu'un installateur accepte les options silencieuses proposées.
+
 ## 🚀 Démarrage rapide
 
 1. Téléchargez le code depuis **[Code → Download ZIP](https://github.com/neosoda/ChocolateyPackager/archive/refs/heads/main.zip)** ou clonez le dépôt.
