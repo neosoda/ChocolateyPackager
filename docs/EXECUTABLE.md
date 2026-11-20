@@ -32,7 +32,7 @@ Une validation supplémentaire doit être faite **manuellement sur une VM Window
 
 ## Compiler via GitHub (facultatif)
 
-Le workflow `.github/workflows/windows-single-exe.yml` est **manuel**, pour éviter de consommer les minutes Actions sur chaque commit. GitHub → Actions → Build Windows single EXE → Run workflow.
+Le workflow `.github/workflows/windows-single-exe.yml` fonctionne **manuellement** (Actions → Build Windows single EXE → Run workflow) ou **sur les Pull Requests qui modifient l'application C#**. Il ne se lance pas à chaque commit sur `main`.
 
 Il compile sur Windows, vérifie la présence d'un unique fichier EXE, exécute le test non destructif et publie un artefact téléchargeable nommé ChocolateyPackager-win-x64.
 
