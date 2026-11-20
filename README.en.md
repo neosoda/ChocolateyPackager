@@ -19,7 +19,7 @@ Looking for a **Chocolatey package builder GUI** or a way to **create a Chocolat
 
 Chocolatey Packager is moving to **ChocolateyPackager.exe**, a compiled **C# / .NET 10 Windows Forms** desktop application. It builds and validates Chocolatey packages with managed .NET code and **does not launch the repository's PowerShell scripts**. The published self-contained EXE will not require an installed .NET runtime.
 
-**The new source must still be built and tested on Windows; no verified EXE download is available yet.** A manually triggered GitHub Actions workflow can produce the Windows x64 binary.
+**Windows compilation and the built-in non-destructive smoke tests passed** ([Windows build](https://github.com/neosoda/ChocolateyPackager/actions/runs/44768595865)). The self-contained win-x64 binary is available in GitHub Actions artifacts, not yet as a release. Real installation tests on a Windows VM are still required.
 
 See **[Build and test the single-file EXE](docs/EXECUTABLE.md)**.
 
