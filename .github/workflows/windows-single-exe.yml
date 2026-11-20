@@ -1,0 +1,120 @@
+name: Build and release Windows single EXE
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/ChocolateyPackager/**'
+      - '.github/workflows/windows-single-exe.yml'
+      - 'VERSION'
+  push:
+    branches: [main]
+    paths:
+      - 'src/ChocolateyPackager/**'
+      - '.github/workflows/windows-single-exe.yml'
+      - 'VERSION'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Install .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Publish self-contained, single-file Windows executable
+        shell: pwsh
+        run: |
+          dotnet publish src/ChocolateyPackager/ChocolateyPackager.csproj --configuration Release --runtime win-x64 --self-contained true --output dist/win-x64 -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=none -p:DebugSymbols=false -p:PublishTrimmed=false
+          if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed" }
+          $files = @(Get-ChildItem dist/win-x64 -File)
+          if ($files.Count -ne 1 -or $files[0].Name -ne 'ChocolateyPackager.exe') {
+            throw "Expected only ChocolateyPackager.exe, got: $($files.Name -join ', ')"
+          }
+
+      - name: Run non-destructive smoke test
+        shell: pwsh
+        run: |
+          $report = Join-Path $env:RUNNER_TEMP 'packager-selftest.txt'
+          $process = Start-Process -FilePath (Resolve-Path 'dist/win-x64/ChocolateyPackager.exe') -ArgumentList '--self-test', '--report', ('"' + $report + '"') -Wait -PassThru
+          if (Test-Path $report) { Get-Content $report }
+          if ($process.ExitCode -ne 0) { throw "Self-test failed with exit code $($process.ExitCode)" }
+          if (-not (Test-Path $report)) { throw "Self-test report missing" }
+          if (-not (Select-String -Path $report -Pattern '^RESULT: PASS$' -Quiet)) { throw "Self-test did not pass" }
+
+      - name: Generate SHA-256 checksum
+        shell: pwsh
+        run: |
+          $file = 'dist/win-x64/ChocolateyPackager.exe'
+          $hash = (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash.ToLowerInvariant()
+          [System.IO.File]::WriteAllText("$file.sha256", "$hash  ChocolateyPackager.exe`n", [System.Text.UTF8Encoding]::new($false))
+          Write-Host "SHA-256: $hash"
+
+      - name: Upload Windows executable and checksum
+        uses: actions/upload-artifact@v4
+        with:
+          name: ChocolateyPackager-win-x64
+          path: |
+            dist/win-x64/ChocolateyPackager.exe
+            dist/win-x64/ChocolateyPackager.exe.sha256
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    name: Publish beta GitHub Release
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [build]
+    runs-on: windows-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout release notes
+        uses: actions/checkout@v4
+
+      - name: Download verified build
+        uses: actions/download-artifact@v4
+        with:
+          name: ChocolateyPackager-win-x64
+          path: dist/win-x64
+
+      - name: Verify downloaded artifact integrity
+        shell: pwsh
+        run: |
+          $file = 'dist/win-x64/ChocolateyPackager.exe'
+          $checksum = 'dist/win-x64/ChocolateyPackager.exe.sha256'
+          if (-not (Test-Path -LiteralPath $file) -or -not (Test-Path -LiteralPath $checksum)) {
+            throw 'EXE or checksum missing from downloaded artifact'
+          }
+          $actual = (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash.ToLowerInvariant()
+          $expected = ((Get-Content -LiteralPath $checksum -Raw).Trim() -split '\s+')[0].ToLowerInvariant()
+          if ($actual -ne $expected) { throw "SHA-256 mismatch: $actual != $expected" }
+          Write-Host "Verified SHA-256: $actual"
+
+      - name: Create GitHub prerelease with downloadable EXE
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $version = (Get-Content VERSION -Raw).Trim()
+          $tag = "v$version"
+          if ($tag -ne 'v0.4.0-beta.1') {
+            throw "Unexpected tag $tag; edit release workflow intentionally for a new release"
+          }
+          gh release view "$tag" --repo "$env:GITHUB_REPOSITORY" 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            throw "Release $tag already exists; refusing to overwrite an existing release"
+          }
+          gh release create "$tag" "dist/win-x64/ChocolateyPackager.exe" "dist/win-x64/ChocolateyPackager.exe.sha256" --repo "$env:GITHUB_REPOSITORY" --target "$env:GITHUB_SHA" --prerelease --title "Chocolatey Packager v0.4.0-beta.1 — EXE Windows autonome" --notes-file "docs/RELEASE_NOTES_0.4.0-beta.1.md"
+          if ($LASTEXITCODE -ne 0) { throw "Failed to publish release $tag" }
+          gh release view "$tag" --repo "$env:GITHUB_REPOSITORY" --json url,assets,isPrerelease --jq '{url: .url, prerelease: .isPrerelease, assets: [.assets[].name]}'
+          if ($LASTEXITCODE -ne 0) { throw "Release verification failed" }

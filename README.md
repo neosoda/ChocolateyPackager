@@ -15,6 +15,16 @@
 
 Vous cherchez **comment créer un package Chocolatey à partir d'un EXE ou d'un MSI** ? Chocolatey Packager est un créateur de paquets Chocolatey avec interface graphique (GUI) pour Windows 10, Windows 11 et Windows Server. Sélectionnez l'installateur, vérifiez les informations et les paramètres silencieux proposés, puis générez un fichier `.nupkg` pour votre dépôt local ou réseau. **Chocolatey n'est pas nécessaire sur le poste de création** ; il reste requis sur les postes qui installent le paquet.
 
+## Application Windows en un seul EXE — nouvelle génération (v0.4.0 en préparation)
+
+Le logiciel évolue vers **ChocolateyPackager.exe**, une application graphique compilée en **C# / .NET 10 (WinForms)**. Elle crée et valide des packages Chocolatey directement en .NET, **sans lancer les scripts PowerShell du dépôt** et sans dépendance à installer sur le poste utilisateur une fois l'EXE construit.
+
+**Compilation Windows et auto-test non destructif réussis** : un EXE autonome `win-x64` a été produit ([build Windows](https://github.com/neosoda/ChocolateyPackager/actions/runs/44768595865)). Le binaire est disponible comme artefact GitHub Actions ; ce n'est pas encore une release, et les tests d'installation réelle doivent toujours être réalisés sur VM.
+
+Documentation et commande de compilation : **[Créer l'EXE unique et le tester](docs/EXECUTABLE.md)**.
+
+L'ancienne application PowerShell (`Start.cmd`) reste provisoirement disponible en repli pour ne pas interrompre les utilisateurs tant que la version C# n'a pas été validée.
+
 ## Fonctionnalités
 
 - Interface graphique WinForms, sélection de fichier ou glisser-déposer.
@@ -40,7 +50,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\Validate-Package.ps1"
 
 Voir [Validation et tests sur VM](docs/VALIDATION.md) et [Références et licences](docs/REFERENCES.md). **Ces fonctionnalités nécessitent encore une validation de bout en bout sur Windows** ; un contrôle statique n'est pas un test d'installation réel.
 
-## Créer un package Chocolatey depuis un EXE ou un MSI
+## Créer un package Chocolatey depuis un EXE ou un MSI (version historique par scripts)
 
 1. Téléchargez [Chocolatey Packager pour Windows (ZIP du dépôt)](https://github.com/neosoda/ChocolateyPackager/archive/refs/heads/main.zip) et extrayez-le dans un dossier.
 2. Double-cliquez sur **`Start.cmd`**.

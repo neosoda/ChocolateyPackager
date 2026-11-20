@@ -15,6 +15,16 @@
 
 Looking for a **Chocolatey package builder GUI** or a way to **create a Chocolatey package from an EXE or MSI**? Chocolatey Packager is a portable Windows desktop tool for generating `.nupkg` files. Select an installer, review package metadata and suggested silent switches, then export the package to a local directory or network share. **Chocolatey is not required on the build machine**, but is needed on target machines that install the package.
 
+## Single portable Windows EXE — next generation (v0.4.0 in development)
+
+Chocolatey Packager is moving to **ChocolateyPackager.exe**, a compiled **C# / .NET 10 Windows Forms** desktop application. It builds and validates Chocolatey packages with managed .NET code and **does not launch the repository's PowerShell scripts**. The published self-contained EXE will not require an installed .NET runtime.
+
+**Windows compilation and the built-in non-destructive smoke tests passed** ([Windows build](https://github.com/neosoda/ChocolateyPackager/actions/runs/44768595865)). The self-contained win-x64 binary is available in GitHub Actions artifacts, not yet as a release. Real installation tests on a Windows VM are still required.
+
+See **[Build and test the single-file EXE](docs/EXECUTABLE.md)**.
+
+The legacy PowerShell launcher (`Start.cmd`) remains available as a fallback until the native app is validated.
+
 ## Features
 
 - Windows Forms GUI with file picker and drag-and-drop.
@@ -40,7 +50,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\Validate-Package.ps1"
 
 See [Validation and VM testing (FR)](docs/VALIDATION.md) and [References and licensing](docs/REFERENCES.md). **These features still require end-to-end Windows testing**; static validation cannot certify an actual installation.
 
-## Create a Chocolatey package from an EXE or MSI
+## Create a Chocolatey package from an EXE or MSI (legacy script version)
 
 1. Download [Chocolatey Packager for Windows (repository ZIP)](https://github.com/neosoda/ChocolateyPackager/archive/refs/heads/main.zip) and extract it.
 2. Double-click **`Start.cmd`**.

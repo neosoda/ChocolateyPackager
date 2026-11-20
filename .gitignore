@@ -30,3 +30,8 @@ temp/
 Thumbs.db
 .vscode/
 .idea/
+# .NET compiled app build outputs
+**/bin/
+**/obj/
+dist/
+*.pdb
