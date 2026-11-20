@@ -19,7 +19,7 @@ Vous cherchez **comment créer un package Chocolatey à partir d'un EXE ou d'un 
 
 Le logiciel évolue vers **ChocolateyPackager.exe**, une application graphique compilée en **C# / .NET 10 (WinForms)**. Elle crée et valide des packages Chocolatey directement en .NET, **sans lancer les scripts PowerShell du dépôt** et sans dépendance à installer sur le poste utilisateur une fois l'EXE construit.
 
-**Pour l'instant, le nouveau code est à compiler et à tester sous Windows : aucun EXE de cette version n'est encore confirmé comme publié.** Un workflow GitHub Actions manuel prépare sa compilation au format autonome `win-x64`.
+**Compilation Windows et auto-test non destructif réussis** : un EXE autonome `win-x64` a été produit ([build Windows](https://github.com/neosoda/ChocolateyPackager/actions/runs/44768595865)). Le binaire est disponible comme artefact GitHub Actions ; ce n'est pas encore une release, et les tests d'installation réelle doivent toujours être réalisés sur VM.
 
 Documentation et commande de compilation : **[Créer l'EXE unique et le tester](docs/EXECUTABLE.md)**.
 
