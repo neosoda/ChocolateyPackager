@@ -120,7 +120,11 @@ function Choose-Depot {
 
 $script:form = New-Object Windows.Forms.Form
 $script:form.Text = 'Chocolatey Packager v0.3.0'
-$script:form.ClientSize = [Drawing.Size]::new(790,850)
+$availableHeight = [Windows.Forms.Screen]::PrimaryScreen.WorkingArea.Height
+$windowHeight = [Math]::Min(850, [Math]::Max(510, $availableHeight - 80))
+$script:form.ClientSize = [Drawing.Size]::new(790,$windowHeight)
+$script:form.AutoScroll = $true
+$script:form.AutoScrollMinSize = [Drawing.Size]::new(770,850)
 $script:form.FormBorderStyle = [Windows.Forms.FormBorderStyle]::FixedDialog
 $script:form.MaximizeBox = $false
 $script:form.StartPosition = [Windows.Forms.FormStartPosition]::CenterScreen
