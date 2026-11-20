@@ -1,7 +1,12 @@
 name: Build Windows single EXE
-# Manual only, to avoid consuming Actions minutes on every commit.
+# Run on native-app PRs (to test the Windows binary), or manually.
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/ChocolateyPackager/**'
+      - '.github/workflows/windows-single-exe.yml'
 
 permissions:
   contents: read
