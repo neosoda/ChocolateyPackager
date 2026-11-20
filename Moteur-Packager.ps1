@@ -16,6 +16,10 @@ param(
     [Parameter(Mandatory)][string]$Version,
     [string]$SilentArgs,
     [string]$Title,
+    [string]$Authors,
+    [string]$Description,
+    [string]$ProjectUrl,
+    [string]$Tags = 'interne hors-ligne offline',
     [ValidateSet('any','x64','x86')][string]$Architecture = 'any',
     [Parameter(Mandatory)][string]$OutputDirectory
 )
@@ -62,10 +66,22 @@ if ($Id.EndsWith('-cmil')) { throw 'Suffixe -cmil abandonne : utilisez un identi
 if ($Version -cnotmatch '^\d+\.\d+(\.\d+){0,2}(-[0-9A-Za-z.-]+)?$') { throw 'Version invalide (ex : 1.4.1.1032).' }
 if ($SilentArgs -match '[\r\n]') { throw 'Arguments silencieux sur une seule ligne uniquement.' }
 if ([string]::IsNullOrWhiteSpace($Title)) { $Title = $Id }
+if ($Title.Length -gt 200) { throw 'Titre trop long (maximum 200 caracteres).' }
+if ($Description -and $Description.Length -gt 4000) { throw 'Description trop longue (maximum 4000 caracteres).' }
+if ($Authors -and $Authors.Length -gt 200) { throw 'Champ auteurs trop long (maximum 200 caracteres).' }
+if ($Tags -match '[\r\n,]' -or $Tags.Length -gt 240) { throw 'Tags invalides : ni virgule ni saut de ligne, 240 caracteres maximum.' }
+if ($ProjectUrl) {
+    $parsedUrl = $null
+    if (-not [Uri]::TryCreate($ProjectUrl, [UriKind]::Absolute, [ref]$parsedUrl) -or $parsedUrl.Scheme -ne 'https') {
+        throw 'URL du projet invalide : une adresse HTTPS est requise.'
+    }
+}
 if (-not (Test-Path -LiteralPath $OutputDirectory -PathType Container)) { throw "Depot de destination introuvable : $OutputDirectory" }
 
 $analysis = Get-CMILInstallerAnalysis -Path $Installer
 if ($analysis.Signature -eq 'HashMismatch') { throw 'Signature Authenticode corrompue, paquet refuse.' }
+if ([string]::IsNullOrWhiteSpace($Authors)) { $Authors = if ($analysis.Publisher) { $analysis.Publisher } else { 'Interne' } }
+if ([string]::IsNullOrWhiteSpace($Description)) { $Description = 'Paquet interne avec installateur embarque. Test en VM requis avant diffusion.' }
 if ($analysis.Type -eq 'exe' -and [string]::IsNullOrWhiteSpace($SilentArgs)) {
     throw 'Arguments silencieux EXE absents. Analyser puis valider avant la publication.'
 }
@@ -90,6 +106,7 @@ try {
     $copiedSha = (Get-FileHash -LiteralPath $installerCopy -Algorithm SHA256).Hash.ToUpperInvariant()
     if ($sourceSha -ne $copiedSha) { throw 'Empreinte de la copie locale incorrecte.' }
 
+    $projectUrlNode = if ($ProjectUrl) { '    <projectUrl>' + (XmlEscape $ProjectUrl) + '</projectUrl>' } else { '' }
     $nuspec = @"
 <?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
@@ -97,11 +114,12 @@ try {
     <id>$(XmlEscape $Id)</id>
     <version>$(XmlEscape $Version)</version>
     <title>$(XmlEscape $Title)</title>
-    <authors>Interne</authors>
-    <owners>Interne</owners>
+    <authors>$(XmlEscape $Authors)</authors>
+    <owners>$(XmlEscape $Authors)</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Paquet interne avec installateur embarque. Validation sur VM obligatoire avant diffusion.</description>
-    <tags>interne hors-ligne offline $(XmlEscape $Architecture)</tags>
+    <description>$(XmlEscape $Description)</description>
+$projectUrlNode
+    <tags>$(XmlEscape $Tags) $(XmlEscape $Architecture)</tags>
   </metadata>
 </package>
 "@
@@ -142,6 +160,8 @@ Install-ChocolateyInstallPackage @packageArgs
         originalFile = [IO.Path]::GetFileName($Installer)
         originalSHA256 = $sourceSha
         silentArgs = $SilentArgs
+        authors = $Authors
+        projectUrl = $ProjectUrl
         installerEngine = $analysis.Engine
         detectionConfidence = $analysis.Confidence
         detectionEvidence = $analysis.Evidence
@@ -182,6 +202,16 @@ Install-ChocolateyInstallPackage @packageArgs
         if ($embeddedHash -ne $sourceSha) { throw 'SHA256 du binaire contenu dans le .nupkg incorrect.' }
     } finally { $check.Close() }
 
+    # Validation independante avant publication : rejette les manifestes et scripts invalides.
+    $validator = Join-Path $PSScriptRoot 'Validateur-Paquet.ps1'
+    if (-not (Test-Path -LiteralPath $validator -PathType Leaf)) { throw 'Validateur-Paquet.ps1 absent : publication refusee.' }
+    . $validator
+    $validation = Test-CMILPackage -Path $bundle
+    if (-not $validation.IsValid) {
+        $details = ($validation.Issues | Where-Object { $_.Level -eq 'Erreur' } | ForEach-Object { $_.Code + ': ' + $_.Message }) -join '; '
+        throw "Validation du .nupkg echouee : $details"
+    }
+
     # Copie provisoire sur le MEME partage, controle integrite puis publication atomique.
     $temporaryDest = Join-Path $OutputDirectory ('.' + $filename + '.' + [Guid]::NewGuid().ToString('N') + '.tmp')
     Copy-Item -LiteralPath $bundle -Destination $temporaryDest -ErrorAction Stop
@@ -197,6 +227,7 @@ Install-ChocolateyInstallPackage @packageArgs
         Id = $Id; Version = $Version
         InstallerSHA256 = $sourceSha
         PackageSHA256 = $hashBundle
+        ValidationIssues = @($validation.Issues)
         Note = 'Contenu et integrite controles ; installation Windows/FOG non encore testee.'
     })
 } finally {
