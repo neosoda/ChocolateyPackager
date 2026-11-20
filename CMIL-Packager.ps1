@@ -73,6 +73,7 @@ function Show-Analysis {
     $lines = New-Object 'System.Collections.Generic.List[string]'
     $lines.Add('Observation : ' + $Analysis.Evidence)
     if ($Analysis.ProductCode) { $lines.Add('Code produit MSI : ' + $Analysis.ProductCode) }
+    if ($Analysis.UpgradeCode) { $lines.Add('Code mise a niveau MSI : ' + $Analysis.UpgradeCode) }
     foreach ($w in $Analysis.Warnings) { $lines.Add('ATTENTION : ' + $w) }
     if ($Analysis.Type -eq 'msi') { $lines.Add('MSI : options silencieuses standard. Tester les proprietes requises sur VM.') }
     $script:txtDetails.Text = $lines -join "`r`n"
