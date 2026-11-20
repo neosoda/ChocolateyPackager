@@ -23,7 +23,7 @@ function Get-CMILPackagePartText {
     $stream = $part.GetStream([IO.FileMode]::Open, [IO.FileAccess]::Read)
     try {
         if ($stream.CanSeek -and $stream.Length -gt $MaxBytes) { throw "Fichier interne trop volumineux : $PartName" }
-        $reader = New-Object IO.StreamReader($stream, ([Text.UTF8Encoding]::new($false)), $true, 4096, $true)
+        $reader = [IO.StreamReader]::new($stream, ([Text.UTF8Encoding]::new($false)), $true, 4096, $true)
         try {
             $builder = New-Object Text.StringBuilder
             $buffer = New-Object char[] 4096
@@ -71,13 +71,13 @@ function Test-CMILPackage {
                 $settings = New-Object Xml.XmlReaderSettings
                 $settings.DtdProcessing = [Xml.DtdProcessing]::Prohibit
                 $settings.XmlResolver = $null
-                $xmlReader = [Xml.XmlReader]::Create((New-Object IO.StringReader($xmlText)), $settings)
+                $xmlReader = [Xml.XmlReader]::Create(([IO.StringReader]::new($xmlText)), $settings)
                 try {
                     $xml = New-Object Xml.XmlDocument
                     $xml.XmlResolver = $null
                     $xml.Load($xmlReader)
                 } finally { $xmlReader.Dispose() }
-                $ns = New-Object Xml.XmlNamespaceManager($xml.NameTable)
+                $ns = [Xml.XmlNamespaceManager]::new($xml.NameTable)
                 $ns.AddNamespace('n', $xml.DocumentElement.NamespaceURI)
                 $meta = $xml.SelectSingleNode('/n:package/n:metadata', $ns)
                 if ($null -eq $meta) { throw 'Section metadata absente.' }
