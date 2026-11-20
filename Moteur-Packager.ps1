@@ -72,7 +72,7 @@ if ($Authors -and $Authors.Length -gt 200) { throw 'Champ auteurs trop long (max
 if ($Tags -match '[\r\n,]' -or $Tags.Length -gt 240) { throw 'Tags invalides : ni virgule ni saut de ligne, 240 caracteres maximum.' }
 if ($ProjectUrl) {
     $parsedUrl = $null
-    if (-not [Uri]::TryCreate($ProjectUrl, [UriKind]::Absolute, [ref]$parsedUrl) -or $parsedUrl.Scheme -ne 'https') {
+    if (-not [Uri]::TryCreate($ProjectUrl, [UriKind]::Absolute, [ref]$parsedUrl) -or $parsedUrl.Scheme -ne 'https' -or $parsedUrl.UserInfo) {
         throw 'URL du projet invalide : une adresse HTTPS est requise.'
     }
 }
