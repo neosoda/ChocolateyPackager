@@ -4,9 +4,9 @@
 
 **Chocolatey package builder avec interface graphique Windows : convertissez un installateur MSI ou EXE en package `.nupkg`, sans écrire de scripts PowerShell.**
 
-[![Version](https://img.shields.io/badge/version-0.3.0-334155)](https://github.com/neosoda/ChocolateyPackager)
+[![Version](https://img.shields.io/badge/version-0.4.0--beta.1-334155)](https://github.com/neosoda/ChocolateyPackager)
 ![Windows](https://img.shields.io/badge/Windows-10%2F11%2FServer-0078D4)
-![PowerShell](https://img.shields.io/badge/PowerShell-5.1-4674BE)
+![.NET](https://img.shields.io/badge/.NET-10-512BD4)
 ![Statut](https://img.shields.io/badge/statut-b%C3%AAta-D97706)
 
 **Français** · [English](README.en.md)
@@ -15,11 +15,11 @@
 
 Vous cherchez **comment créer un package Chocolatey à partir d'un EXE ou d'un MSI** ? Chocolatey Packager est un créateur de paquets Chocolatey avec interface graphique (GUI) pour Windows 10, Windows 11 et Windows Server. Sélectionnez l'installateur, vérifiez les informations et les paramètres silencieux proposés, puis générez un fichier `.nupkg` pour votre dépôt local ou réseau. **Chocolatey n'est pas nécessaire sur le poste de création** ; il reste requis sur les postes qui installent le paquet.
 
-## Application Windows en un seul EXE — nouvelle génération (v0.4.0 en préparation)
+## Télécharger ChocolateyPackager.exe — v0.4.0-beta.1
 
-Le logiciel évolue vers **ChocolateyPackager.exe**, une application graphique compilée en **C# / .NET 10 (WinForms)**. Elle crée et valide des packages Chocolatey directement en .NET, **sans lancer les scripts PowerShell du dépôt** et sans dépendance à installer sur le poste utilisateur une fois l'EXE construit.
+La version bêta est disponible sous la forme de **ChocolateyPackager.exe**, une application graphique compilée en **C# / .NET 10 (WinForms)**. Elle crée et valide des packages Chocolatey directement en .NET, **sans lancer les scripts PowerShell du dépôt** et sans dépendance à installer sur le poste utilisateur une fois l'EXE construit.
 
-**Compilation Windows et auto-test non destructif réussis** : un EXE autonome `win-x64` a été produit ([build Windows](https://github.com/neosoda/ChocolateyPackager/actions/runs/44768595865)). Le binaire est disponible comme artefact GitHub Actions ; ce n'est pas encore une release, et les tests d'installation réelle doivent toujours être réalisés sur VM.
+**[Télécharger directement ChocolateyPackager.exe (https://github.com/neosoda/ChocolateyPackager/releases/tag/v0.4.0-beta.1)](https://github.com/neosoda/ChocolateyPackager/releases/download/v0.4.0-beta.1/ChocolateyPackager.exe)** — [Release GitHub et SHA-256](https://github.com/neosoda/ChocolateyPackager/releases/tag/v0.4.0-beta.1). Le binaire Windows x64 a été compilé et testé automatiquement depuis `main` ([workflow de publication](https://github.com/neosoda/ChocolateyPackager/actions/runs/44770344960)). Les installations réelles doivent encore être validées en VM.
 
 Documentation et commande de compilation : **[Créer l'EXE unique et le tester](docs/EXECUTABLE.md)**.
 
