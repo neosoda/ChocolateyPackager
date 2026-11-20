@@ -1,0 +1,48 @@
+name: Build Windows single EXE
+# Manual only, to avoid consuming Actions minutes on every commit.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Install .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Publish self-contained, single-file Windows executable
+        shell: pwsh
+        run: |
+          dotnet publish src/ChocolateyPackager/ChocolateyPackager.csproj --configuration Release --runtime win-x64 --self-contained true --output dist/win-x64 -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=none -p:DebugSymbols=false -p:PublishTrimmed=false
+          if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed" }
+          $files = @(Get-ChildItem dist/win-x64 -File)
+          if ($files.Count -ne 1 -or $files[0].Name -ne 'ChocolateyPackager.exe') {
+            throw "Expected only ChocolateyPackager.exe, got: $($files.Name -join ', ')"
+          }
+
+      - name: Run non-destructive smoke test
+        shell: pwsh
+        run: |
+          $report = Join-Path $env:RUNNER_TEMP 'packager-selftest.txt'
+          $process = Start-Process -FilePath (Resolve-Path 'dist/win-x64/ChocolateyPackager.exe') -ArgumentList '--self-test', '--report', ('"' + $report + '"') -Wait -PassThru
+          if (Test-Path $report) { Get-Content $report }
+          if ($process.ExitCode -ne 0) { throw "Self-test failed with exit code $($process.ExitCode)" }
+          if (-not (Test-Path $report)) { throw "Self-test report missing" }
+          if (-not (Select-String -Path $report -Pattern '^RESULT: PASS$' -Quiet)) { throw "Self-test did not pass" }
+
+      - name: Upload EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: ChocolateyPackager-win-x64
+          path: dist/win-x64/ChocolateyPackager.exe
+          if-no-files-found: error
+          retention-days: 30
