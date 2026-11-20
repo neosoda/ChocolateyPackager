@@ -1,0 +1,32 @@
+# Generated Chocolatey packages and installer binaries
+*.nupkg
+*.snupkg
+*.exe
+*.msi
+*.msix
+*.msixbundle
+*.zip
+*.7z
+*.rar
+
+# Scratch and extracted installer directories
+out/
+dist/
+build/
+temp/
+.tmp/
+
+# Credentials / local settings
+*.env
+.env.*
+*.pfx
+*.p12
+*.key
+*.pem
+*.kdbx
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

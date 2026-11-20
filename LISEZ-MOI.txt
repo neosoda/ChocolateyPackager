@@ -1,0 +1,16 @@
+CHOCOLATEY PACKAGER v0.3.0 (BETA)
+================================
+
+Démarrage rapide / Quick start
+1. Décompresser tous les fichiers dans le même dossier sous Windows.
+2. Double-cliquer sur Lancer.cmd.
+3. Choisir un installateur MSI ou EXE, vérifier les arguments puis créer le .nupkg.
+4. Tester le paquet sur une VM avec Chocolatey avant diffusion.
+
+Documentation complète en français : README.md
+English documentation: README.en.md
+
+La création ne nécessite ni Chocolatey ni Docker sur le poste de préparation.
+L'installation réelle exige Chocolatey sur le poste cible.
+Les paramètres d'installation silencieuse ne peuvent pas être garantis
+pour un EXE arbitraire : utiliser la documentation éditeur et une VM de test.
