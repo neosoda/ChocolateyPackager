@@ -26,6 +26,20 @@ Chocolatey Packager est un outil Windows portable pour fabriquer des fichiers `.
 
 **Prérequis :** Windows 10, 11 ou Server, et Windows PowerShell 5.1. Pas besoin de Chocolatey, NuGet, Python ou Docker pour *créer* les paquets.
 
+## Ajouts sur cette branche de développement
+
+L'interface permet désormais de renseigner **l'éditeur, la description et l'URL HTTPS** dans le manifeste NuSpec, et d'afficher l'**UpgradeCode** MSI lorsqu'il existe.
+
+Avant la publication dans le dossier choisi, le moteur appelle `PackageValidator.ps1` : vérification de la relation NuGet, du manifeste XML, de la syntaxe PowerShell, de la structure et du SHA-256 du binaire embarqué. Les erreurs bloquent la création ; un bouton de l'interface permet de valider un `.nupkg` existant.
+
+Pour une validation en ligne de commande, sans exécuter l'installateur :
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\Validate-Package.ps1" -PackagePath "C:\Packages\exemple.1.0.0.nupkg"
+```
+
+Voir [Validation et tests sur VM](docs/VALIDATION.md) et [Références et licences](docs/REFERENCES.md). **Ces modifications doivent encore être testées sur Windows** ; un contrôle statique n'est pas un test d'installation réel.
+
 ## Démarrage
 
 1. Téléchargez [le ZIP du dépôt](https://github.com/neosoda/ChocolateyPackager/archive/refs/heads/main.zip) et extrayez-le dans un dossier.
