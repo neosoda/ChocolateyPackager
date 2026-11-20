@@ -39,6 +39,20 @@ Originally built for **software deployment in school computer labs** with intern
 > [!IMPORTANT]
 > **Beta v0.3.0.** A structurally valid package does **not** guarantee a successful or silent installation. EXE arguments inferred from signatures must be verified against vendor documentation and tested in a VM. Installer analysis never executes the selected binary.
 
+## 🧰 Development branch additions
+
+The existing packaging workflow remains available. The GUI now provides editable **publisher, description and HTTPS project URL** fields; the `.nuspec` escapes XML-sensitive characters.
+
+An independent **offline validator** (`Validateur-Paquet.ps1`) now runs **before publication** to check manifest and install-script presence, PowerShell syntax, required metadata, internal manifest consistency and the bundled installer's SHA-256. Blocking errors prevent publication. A **Valider un .nupkg** button also inspects existing packages.
+
+On Windows PowerShell 5.1:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\Validateur-Paquet.ps1" -PackagePath "C:\Packages\example.1.0.0.nupkg"
+```
+
+Read [Validation and VM testing (French)](docs/VALIDATION.md) and [References and licensing](docs/REFERENCES.md). **These additions have not been executed in a real Windows environment in this contribution.** Structural validation never proves that a vendor's silent-install switches work.
+
 ## 🚀 Quick start
 
 1. Use **[Code → Download ZIP](https://github.com/neosoda/ChocolateyPackager/archive/refs/heads/main.zip)** or clone the repository.
