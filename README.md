@@ -1,8 +1,8 @@
 <div align="center">
 
-# Chocolatey Packager
+# Chocolatey Packager — générateur graphique de packages Chocolatey pour Windows
 
-**Créez des paquets Chocolatey à partir d'installateurs MSI et EXE.**
+**Chocolatey package builder avec interface graphique Windows : convertissez un installateur MSI ou EXE en package `.nupkg`, sans écrire de scripts PowerShell.**
 
 [![Version](https://img.shields.io/badge/version-0.3.0-334155)](https://github.com/neosoda/ChocolateyPackager)
 ![Windows](https://img.shields.io/badge/Windows-10%2F11%2FServer-0078D4)
@@ -13,7 +13,7 @@
 
 </div>
 
-Chocolatey Packager est un outil Windows portable pour fabriquer des fichiers `.nupkg` sans installer Chocolatey sur le poste de préparation. Choisissez un installateur, vérifiez son nom, sa version et ses paramètres silencieux, puis choisissez où enregistrer le paquet.
+Vous cherchez **comment créer un package Chocolatey à partir d'un EXE ou d'un MSI** ? Chocolatey Packager est un créateur de paquets Chocolatey avec interface graphique (GUI) pour Windows 10, Windows 11 et Windows Server. Sélectionnez l'installateur, vérifiez les informations et les paramètres silencieux proposés, puis générez un fichier `.nupkg` pour votre dépôt local ou réseau. **Chocolatey n'est pas nécessaire sur le poste de création** ; il reste requis sur les postes qui installent le paquet.
 
 ## Fonctionnalités
 
@@ -26,7 +26,7 @@ Chocolatey Packager est un outil Windows portable pour fabriquer des fichiers `.
 
 **Prérequis :** Windows 10, 11 ou Server, et Windows PowerShell 5.1. Pas besoin de Chocolatey, NuGet, Python ou Docker pour *créer* les paquets.
 
-## Ajouts sur cette branche de développement
+## Validation des packages Chocolatey et édition des métadonnées
 
 L'interface permet désormais de renseigner **l'éditeur, la description et l'URL HTTPS** dans le manifeste NuSpec, et d'afficher l'**UpgradeCode** MSI lorsqu'il existe.
 
@@ -38,11 +38,11 @@ Pour une validation en ligne de commande, sans exécuter l'installateur :
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\Validate-Package.ps1" -PackagePath "C:\Packages\exemple.1.0.0.nupkg"
 ```
 
-Voir [Validation et tests sur VM](docs/VALIDATION.md) et [Références et licences](docs/REFERENCES.md). **Ces modifications doivent encore être testées sur Windows** ; un contrôle statique n'est pas un test d'installation réel.
+Voir [Validation et tests sur VM](docs/VALIDATION.md) et [Références et licences](docs/REFERENCES.md). **Ces fonctionnalités nécessitent encore une validation de bout en bout sur Windows** ; un contrôle statique n'est pas un test d'installation réel.
 
-## Démarrage
+## Créer un package Chocolatey depuis un EXE ou un MSI
 
-1. Téléchargez [le ZIP du dépôt](https://github.com/neosoda/ChocolateyPackager/archive/refs/heads/main.zip) et extrayez-le dans un dossier.
+1. Téléchargez [Chocolatey Packager pour Windows (ZIP du dépôt)](https://github.com/neosoda/ChocolateyPackager/archive/refs/heads/main.zip) et extrayez-le dans un dossier.
 2. Double-cliquez sur **`Start.cmd`**.
 3. Sélectionnez un fichier `.msi` ou `.exe`.
 4. Vérifiez l'identifiant, la version, les arguments silencieux et le répertoire de sortie.
@@ -56,7 +56,7 @@ Avec l'installateur `Everything-1.4.1.1032.x64-Setup.exe`, l'application peut pr
 
 L'argument reste à confirmer avec la documentation de l'éditeur et par un test d'installation.
 
-## Vérifier un paquet
+## Tester et valider un fichier `.nupkg` Chocolatey
 
 Le projet contient un test de structure qui n'installe rien :
 
@@ -79,11 +79,25 @@ Start.cmd                 Lance l'interface
 ChocolateyPackager.ps1    Interface graphique
 InstallerDetector.ps1     Analyse MSI / EXE
 PackageBuilder.ps1        Génération et vérification des .nupkg
+PackageValidator.ps1      Validation statique des packages
+Validate-Package.ps1      Vérification d'un .nupkg en ligne de commande
 SelfTest.ps1              Tests structurels non destructifs
 QUICKSTART.txt            Aide de démarrage FR/EN
 ```
 
 Le paquet contient notamment `identifiant.nuspec`, `tools/chocolateyInstall.ps1`, l'installateur embarqué et `tools/packager-info.json`.
+
+## Questions fréquentes sur la création de packages Chocolatey
+
+**Comment convertir un installateur EXE ou MSI en package Chocolatey ?** Ouvrez `Start.cmd`, sélectionnez le fichier dans l'interface, contrôlez l'identifiant, la version et les arguments, puis cliquez sur **Créer le paquet .nupkg**.
+
+**Faut-il installer Chocolatey pour créer un paquet ?** Non. Windows PowerShell 5.1 suffit pour générer le package. Chocolatey est nécessaire sur la machine où le paquet sera installé.
+
+**Les arguments d'installation silencieuse EXE sont-ils garantis ?** Non. Ils sont suggérés à partir de signatures reconnues ou du fournisseur, et doivent être testés dans une VM Windows avant tout déploiement.
+
+**Est-ce utilisable pour un déploiement logiciel en entreprise ou en établissement scolaire ?** Le package peut être enregistré sur un dossier local ou un partage réseau ; vérifiez la compatibilité, les droits d'accès et la licence de redistribution avant de le diffuser.
+
+Pour approfondir : [documentation officielle de création des packages Chocolatey](https://docs.chocolatey.org/en-us/create/create-packages/), [validation des packages](docs/VALIDATION.md) et [version anglaise du README](README.en.md).
 
 ## Limites de la version 0.3.0
 
