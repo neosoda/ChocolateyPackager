@@ -4,9 +4,9 @@
 
 **Create Chocolatey `.nupkg` packages from MSI and EXE installers with a graphical Windows package builder — no PowerShell scripting required.**
 
-[![Version](https://img.shields.io/badge/version-0.3.0-334155)](https://github.com/neosoda/ChocolateyPackager)
+[![Version](https://img.shields.io/badge/version-0.4.0--beta.1-334155)](https://github.com/neosoda/ChocolateyPackager)
 ![Windows](https://img.shields.io/badge/Windows-10%2F11%2FServer-0078D4)
-![PowerShell](https://img.shields.io/badge/PowerShell-5.1-4674BE)
+![.NET](https://img.shields.io/badge/.NET-10-512BD4)
 ![Status](https://img.shields.io/badge/status-beta-D97706)
 
 [Français](README.md) · **English**
@@ -15,11 +15,11 @@
 
 Looking for a **Chocolatey package builder GUI** or a way to **create a Chocolatey package from an EXE or MSI**? Chocolatey Packager is a portable Windows desktop tool for generating `.nupkg` files. Select an installer, review package metadata and suggested silent switches, then export the package to a local directory or network share. **Chocolatey is not required on the build machine**, but is needed on target machines that install the package.
 
-## Single portable Windows EXE — next generation (v0.4.0 in development)
+## Download the portable Windows EXE — v0.4.0-beta.1
 
-Chocolatey Packager is moving to **ChocolateyPackager.exe**, a compiled **C# / .NET 10 Windows Forms** desktop application. It builds and validates Chocolatey packages with managed .NET code and **does not launch the repository's PowerShell scripts**. The published self-contained EXE will not require an installed .NET runtime.
+Chocolatey Packager is available as **ChocolateyPackager.exe**, a compiled **C# / .NET 10 Windows Forms** desktop application. It builds and validates Chocolatey packages with managed .NET code and **does not launch the repository's PowerShell scripts**. The published self-contained EXE does not require a separately installed .NET runtime.
 
-**Windows compilation and the built-in non-destructive smoke tests passed** ([Windows build](https://github.com/neosoda/ChocolateyPackager/actions/runs/44768595865)). The self-contained win-x64 binary is available in GitHub Actions artifacts, not yet as a release. Real installation tests on a Windows VM are still required.
+**[Download ChocolateyPackager.exe](https://github.com/neosoda/ChocolateyPackager/releases/download/v0.4.0-beta.1/ChocolateyPackager.exe)** — [GitHub release and SHA-256 checksum](https://github.com/neosoda/ChocolateyPackager/releases/tag/v0.4.0-beta.1). The Windows x64 executable passed the build and non-destructive smoke tests on `main` ([release workflow](https://github.com/neosoda/ChocolateyPackager/actions/runs/44770344960)). Real Chocolatey installations still require VM testing.
 
 See **[Build and test the single-file EXE](docs/EXECUTABLE.md)**.
 
