@@ -7,7 +7,7 @@
   construction OPC, verification des parties et publication dans le depot.
   Il FAUT faire une installation reelle sur une VM avant diffusion.
  .EXAMPLE
-  .\Moteur-Packager.ps1 -Installer 'C:\Temp\Everything-1.4.1.1032.x64-Setup.exe' -Id everything -Version 1.4.1.1032 -SilentArgs /S -OutputDirectory 'C:\ChocoDepot'
+  .\PackageBuilder.ps1 -Installer 'C:\Temp\Everything-1.4.1.1032.x64-Setup.exe' -Id everything -Version 1.4.1.1032 -SilentArgs /S -OutputDirectory 'C:\ChocoDepot'
 #>
 [CmdletBinding()]
 param(
@@ -29,7 +29,7 @@ function PSQuote([string]$Text) { return "'" + $Text.Replace("'", "''") + "'" }
 function Write-Utf8NoBom([string]$File, [string]$Content) {
     [IO.File]::WriteAllText($File, $Content, ([Text.UTF8Encoding]::new($false)))
 }
-function Add-CMILPackagePart {
+function Add-PackagePart {
     param([IO.Packaging.Package]$Package, [string]$PartName, [string]$SourceFile, [string]$Mime = 'application/octet-stream')
     $uri = [IO.Packaging.PackUriHelper]::CreatePartUri(([Uri]::new(('/' + $PartName), [UriKind]::Relative)))
     $part = $Package.CreatePart($uri, $Mime, [IO.Packaging.CompressionOption]::Maximum)
@@ -40,7 +40,7 @@ function Add-CMILPackagePart {
     } finally { $inputStream.Dispose() }
     return $uri
 }
-function Read-CMILPartHash {
+function Read-PackagePartHash {
     param([IO.Packaging.Package]$Package, [string]$PartName)
     $uri = [IO.Packaging.PackUriHelper]::CreatePartUri(([Uri]::new(('/' + $PartName), [UriKind]::Relative)))
     if (-not $Package.PartExists($uri)) { throw "Partie absente du .nupkg : $PartName" }
@@ -53,18 +53,17 @@ function Read-CMILPartHash {
 }
 
 if ($env:OS -ne 'Windows_NT') { throw 'Cette version necessite Windows PowerShell 5.1.' }
-$detectorFile = Join-Path $PSScriptRoot 'Detecteur-Installateur.ps1'
-if (-not (Test-Path -LiteralPath $detectorFile -PathType Leaf)) { throw 'Detecteur-Installateur.ps1 absent. Extraire toute l archive.' }
+$detectorFile = Join-Path $PSScriptRoot 'InstallerDetector.ps1'
+if (-not (Test-Path -LiteralPath $detectorFile -PathType Leaf)) { throw 'InstallerDetector.ps1 absent. Extraire toute l archive.' }
 . $detectorFile
 
 if ($Id -cnotmatch '^[a-z0-9][a-z0-9._-]{0,79}$') { throw 'ID invalide (80 caracteres maximum, minuscules, chiffres et tirets).' }
-if ($Id.EndsWith('-cmil')) { throw 'Suffixe -cmil abandonne : utilisez un identifiant sans ce suffixe.' }
 if ($Version -cnotmatch '^\d+\.\d+(\.\d+){0,2}(-[0-9A-Za-z.-]+)?$') { throw 'Version invalide (ex : 1.4.1.1032).' }
 if ($SilentArgs -match '[\r\n]') { throw 'Arguments silencieux sur une seule ligne uniquement.' }
 if ([string]::IsNullOrWhiteSpace($Title)) { $Title = $Id }
 if (-not (Test-Path -LiteralPath $OutputDirectory -PathType Container)) { throw "Depot de destination introuvable : $OutputDirectory" }
 
-$analysis = Get-CMILInstallerAnalysis -Path $Installer
+$analysis = Get-InstallerAnalysis -Path $Installer
 if ($analysis.Signature -eq 'HashMismatch') { throw 'Signature Authenticode corrompue, paquet refuse.' }
 if ($analysis.Type -eq 'exe' -and [string]::IsNullOrWhiteSpace($SilentArgs)) {
     throw 'Arguments silencieux EXE absents. Analyser puis valider avant la publication.'
@@ -97,11 +96,11 @@ try {
     <id>$(XmlEscape $Id)</id>
     <version>$(XmlEscape $Version)</version>
     <title>$(XmlEscape $Title)</title>
-    <authors>Interne</authors>
-    <owners>Interne</owners>
+    <authors>Package maintainer</authors>
+    <owners>Package maintainer</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Paquet interne avec installateur embarque. Validation sur VM obligatoire avant diffusion.</description>
-    <tags>interne hors-ligne offline $(XmlEscape $Architecture)</tags>
+    <description>Paquet Chocolatey avec installateur embarque. Tester l installation avant toute diffusion.</description>
+    <tags>offline local installer $(XmlEscape $Architecture)</tags>
   </metadata>
 </package>
 "@
@@ -147,7 +146,7 @@ Install-ChocolateyInstallPackage @packageArgs
         detectionEvidence = $analysis.Evidence
         signatureStatus = $analysis.Signature
         architecture = $Architecture
-        validation = 'Structure verifiee. Installation reelle FOG/Chocolatey non testee.'
+        validation = 'Structure verifiee. Installation reelle avec Chocolatey non testee.'
     }
     $manifestFile = Join-Path $tools 'packager-info.json'
     Write-Utf8NoBom -File $manifestFile -Content ($manifest | ConvertTo-Json -Depth 4)
@@ -158,14 +157,14 @@ Install-ChocolateyInstallPackage @packageArgs
         $package.PackageProperties.Creator = 'Chocolatey Packager'
         $package.PackageProperties.Identifier = $Id
         $package.PackageProperties.Version = $Version
-        $package.PackageProperties.Description = 'Paquet interne autonome MSI/EXE'
-        $nuspecUri = Add-CMILPackagePart -Package $package -PartName ($Id + '.nuspec') -SourceFile $nuspecFile -Mime 'application/octet-stream'
+        $package.PackageProperties.Description = 'Paquet Chocolatey autonome MSI/EXE'
+        $nuspecUri = Add-PackagePart -Package $package -PartName ($Id + '.nuspec') -SourceFile $nuspecFile -Mime 'application/octet-stream'
         [void]$package.CreateRelationship($nuspecUri, [IO.Packaging.TargetMode]::Internal, 'http://schemas.microsoft.com/packaging/2010/07/manifest')
-        [void](Add-CMILPackagePart -Package $package -PartName 'tools/chocolateyInstall.ps1' -SourceFile $scriptFile)
-        [void](Add-CMILPackagePart -Package $package -PartName ('tools/' + $installerName) -SourceFile $installerCopy)
-        [void](Add-CMILPackagePart -Package $package -PartName 'tools/packager-info.json' -SourceFile $manifestFile)
+        [void](Add-PackagePart -Package $package -PartName 'tools/chocolateyInstall.ps1' -SourceFile $scriptFile)
+        [void](Add-PackagePart -Package $package -PartName ('tools/' + $installerName) -SourceFile $installerCopy)
+        [void](Add-PackagePart -Package $package -PartName 'tools/packager-info.json' -SourceFile $manifestFile)
         if ($analysis.Type -eq 'exe') {
-            [void](Add-CMILPackagePart -Package $package -PartName 'tools/installer.exe.ignore' -SourceFile (Join-Path $tools 'installer.exe.ignore'))
+            [void](Add-PackagePart -Package $package -PartName 'tools/installer.exe.ignore' -SourceFile (Join-Path $tools 'installer.exe.ignore'))
         }
     } finally { $package.Close() }
 
@@ -178,7 +177,7 @@ Install-ChocolateyInstallPackage @packageArgs
         }
         $relationships = @($check.GetRelationshipsByType('http://schemas.microsoft.com/packaging/2010/07/manifest'))
         if ($relationships.Count -ne 1) { throw 'Relation du manifeste nuget absente ou multiple.' }
-        $embeddedHash = Read-CMILPartHash -Package $check -PartName ('tools/' + $installerName)
+        $embeddedHash = Read-PackagePartHash -Package $check -PartName ('tools/' + $installerName)
         if ($embeddedHash -ne $sourceSha) { throw 'SHA256 du binaire contenu dans le .nupkg incorrect.' }
     } finally { $check.Close() }
 
@@ -197,7 +196,7 @@ Install-ChocolateyInstallPackage @packageArgs
         Id = $Id; Version = $Version
         InstallerSHA256 = $sourceSha
         PackageSHA256 = $hashBundle
-        Note = 'Contenu et integrite controles ; installation Windows/FOG non encore testee.'
+        Note = 'Contenu et integrite controles ; installation effective non encore testee.'
     })
 } finally {
     if ($temporaryDest -and (Test-Path -LiteralPath $temporaryDest)) {

@@ -9,9 +9,9 @@ $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 [Windows.Forms.Application]::EnableVisualStyles()
-. (Join-Path $PSScriptRoot 'Detecteur-Installateur.ps1')
+. (Join-Path $PSScriptRoot 'InstallerDetector.ps1')
 
-$script:Engine = Join-Path $PSScriptRoot 'Moteur-Packager.ps1'
+$script:Engine = Join-Path $PSScriptRoot 'PackageBuilder.ps1'
 $script:ConfiguredDepot = [Environment]::GetEnvironmentVariable('CHOCOLATEY_PACKAGER_DEPOT', 'Process')
 $script:DefaultDepot = if ($script:ConfiguredDepot -and (Test-Path -LiteralPath $script:ConfiguredDepot -PathType Container)) {
     $script:ConfiguredDepot
@@ -53,7 +53,7 @@ function Add-Button {
     return $b
 }
 function Show-Problem([string]$Message) {
-    [void][Windows.Forms.MessageBox]::Show($Message,'CMIL Packager','OK','Warning')
+    [void][Windows.Forms.MessageBox]::Show($Message,'Chocolatey Packager','OK','Warning')
 }
 function Show-Analysis {
     param($Analysis)
@@ -84,7 +84,7 @@ function Analyze-SelectedFile {
     try {
         $script:lblStatus.Text = 'Analyse statique en cours...'
         $script:form.Refresh()
-        $analysis = Get-CMILInstallerAnalysis -Path $path
+        $analysis = Get-InstallerAnalysis -Path $path
         Show-Analysis $analysis
     } catch {
         $script:CurrentAnalysis = $null
@@ -193,8 +193,8 @@ $script:btnCreate.Add_Click({
     $depot = $script:txtOutput.Text.Trim()
     $file = $script:txtInstaller.Text.Trim()
     if (-not $script:CurrentAnalysis -or $script:CurrentAnalysis.Path -ne $file) { Show-Problem 'Analysez d abord le fichier choisi.'; return }
-    if (-not (Test-Path -LiteralPath $script:Engine -PathType Leaf)) { Show-Problem 'Moteur-Packager.ps1 est absent du dossier. Decompressez toute l archive.'; return }
-    if ($id -cnotmatch '^[a-z0-9][a-z0-9._-]{0,79}$' -or $id.EndsWith('-cmil')) { Show-Problem 'ID incorrect : minuscules, chiffres, tirets, sans suffixe -cmil.'; return }
+    if (-not (Test-Path -LiteralPath $script:Engine -PathType Leaf)) { Show-Problem 'PackageBuilder.ps1 est absent du dossier. Decompressez toute l archive.'; return }
+    if ($id -cnotmatch '^[a-z0-9][a-z0-9._-]{0,79}$') { Show-Problem 'ID incorrect : 1 a 80 caracteres, lettres minuscules, chiffres, points, tirets ou underscores.'; return }
     if ($ver -cnotmatch '^\d+\.\d+(\.\d+){0,2}(-[0-9A-Za-z.-]+)?$') { Show-Problem 'Version invalide (ex : 1.4.1.1032).'; return }
     if ($args -match '[\r\n]') { Show-Problem 'Arguments sur une seule ligne.'; return }
     if ($script:CurrentAnalysis.Type -eq 'exe' -and [string]::IsNullOrWhiteSpace($args)) { Show-Problem 'Arguments EXE inconnus : renseignez les options confirmees par l editeur.'; return }
@@ -220,7 +220,7 @@ $script:btnCreate.Add_Click({
         $script:OutputPackage = $result.PackagePath
         $script:lblStatus.ForeColor = [Drawing.Color]::FromArgb(37,118,67)
         $script:lblStatus.Text = 'PAQUET CREE : ' + $result.PackagePath
-        $prompt = "Paquet valide structurellement :`r`n$($result.PackagePath)`r`n`r`nFOG : Package = $id`r`nSource = $depot`r`n`r`nTester ensuite sur VM-TEST avant diffusion.`r`n`r`nAfficher le dossier ?"
+        $prompt = "Paquet valide structurellement :`r`n$($result.PackagePath)`r`n`r`nIdentifiant : $id`r`nDossier : $depot`r`n`r`nTester l'installation avec Chocolatey avant diffusion.`r`n`r`nAfficher le dossier ?"
         if ([Windows.Forms.MessageBox]::Show($prompt,'Paquet cree','YesNo','Information') -eq [Windows.Forms.DialogResult]::Yes) {
             Start-Process explorer.exe -ArgumentList ('/select,"' + $result.PackagePath + '"')
         }

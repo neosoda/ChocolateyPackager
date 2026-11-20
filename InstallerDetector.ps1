@@ -2,7 +2,7 @@
 # Chocolatey Packager v0.3.0 - Analyse statique uniquement : N'EXECUTE JAMAIS l'installateur.
 Set-StrictMode -Version Latest
 
-function ConvertTo-CMILPackageId {
+function ConvertTo-PackageId {
     param([string]$Name)
     if ([string]::IsNullOrWhiteSpace($Name)) { return '' }
     $value = $Name.Normalize([Text.NormalizationForm]::FormD)
@@ -10,12 +10,11 @@ function ConvertTo-CMILPackageId {
     $value = $value.ToLowerInvariant()
     $value = [regex]::Replace($value, '[^a-z0-9._-]+', '-')
     $value = $value.Trim('-','_','.')
-    $value = [regex]::Replace($value, '-cmil$', '') # ancien suffixe abandonne
     if ($value.Length -gt 80) { $value = $value.Substring(0,80).TrimEnd('-','_','.') }
     return $value
 }
 
-function Get-CMILMsiProperty {
+function Get-MsiProperty {
     param([string]$Path, [string]$Property)
     $installer = $null; $db = $null; $view = $null; $record = $null
     try {
@@ -40,7 +39,7 @@ function Get-CMILMsiProperty {
     return ''
 }
 
-function Test-CMILPortableExecutable {
+function Test-PortableExecutable {
     param([string]$Path)
     $stream = [IO.File]::Open($Path, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::Read)
     try {
@@ -58,7 +57,7 @@ function Test-CMILPortableExecutable {
     } finally { $stream.Dispose() }
 }
 
-function Get-CMILExeTextSample {
+function Get-ExeTextSample {
     param([string]$Path)
     # Lit au maximum 4 Mio au debut et 4 Mio a la fin : une grosse installation
     # ne charge donc pas des centaines de Mio en RAM. Le scan reste partiel.
@@ -86,7 +85,7 @@ function Get-CMILExeTextSample {
     } finally { $stream.Dispose() }
 }
 
-function Get-CMILInstallerAnalysis {
+function Get-InstallerAnalysis {
     [CmdletBinding()]
     param([Parameter(Mandatory)][string]$Path)
     if ($env:OS -ne 'Windows_NT') { throw 'L analyse MSI/EXE est prevue pour Windows.' }
@@ -115,10 +114,10 @@ function Get-CMILInstallerAnalysis {
     $manufacturer = ''
 
     if ($extension -eq '.msi') {
-        $msiName = Get-CMILMsiProperty -Path $Path -Property 'ProductName'
-        $msiVersion = Get-CMILMsiProperty -Path $Path -Property 'ProductVersion'
-        $manufacturer = Get-CMILMsiProperty -Path $Path -Property 'Manufacturer'
-        $productCode = Get-CMILMsiProperty -Path $Path -Property 'ProductCode'
+        $msiName = Get-MsiProperty -Path $Path -Property 'ProductName'
+        $msiVersion = Get-MsiProperty -Path $Path -Property 'ProductVersion'
+        $manufacturer = Get-MsiProperty -Path $Path -Property 'Manufacturer'
+        $productCode = Get-MsiProperty -Path $Path -Property 'ProductCode'
         if ([string]::IsNullOrWhiteSpace($productCode)) { throw 'Impossible de valider ce fichier MSI (ProductCode introuvable).' }
         if ($msiName) { $name = $msiName }
         if ($msiVersion -match '^\d+(?:\.\d+){1,3}$') { $version = $msiVersion }
@@ -129,7 +128,7 @@ function Get-CMILInstallerAnalysis {
         # Conserver x64 quand le nom MSI indique explicitement x64. Pour x86 ou inconnu, 'any'.
         # x86 reste compatible avec Windows x64, contrairement a l'ancienne V2.
     } else {
-        if (-not (Test-CMILPortableExecutable -Path $Path)) { throw 'EXE invalide : en-tete Windows PE absent ou corrompu.' }
+        if (-not (Test-PortableExecutable -Path $Path)) { throw 'EXE invalide : en-tete Windows PE absent ou corrompu.' }
         try {
             $info = [Diagnostics.FileVersionInfo]::GetVersionInfo($Path)
             $manufacturer = [string]$info.CompanyName
@@ -140,7 +139,7 @@ function Get-CMILInstallerAnalysis {
             }
             if ($name -eq $leaf -and -not [string]::IsNullOrWhiteSpace($info.ProductName)) { $name = [string]$info.ProductName }
         } catch { }
-        $data = Get-CMILExeTextSample -Path $Path
+        $data = Get-ExeTextSample -Path $Path
         # Les signatures sont basees sur le moteur de l'installeur, jamais sur une execution de /?.
         if ($leaf -match '(?i)^everything(?:[-_. ]|$)') {
             $engine = 'Everything (voidtools)'
@@ -190,7 +189,7 @@ function Get-CMILInstallerAnalysis {
     if ($signature -eq 'HashMismatch') { $warnings.Add('ATTENTION : signature invalide (HashMismatch). Refuser la publication.') }
     if ($signature -eq 'NotSigned') { $warnings.Add('Fichier non signe : verifier sa provenance et son empreinte.') }
 
-    $id = ConvertTo-CMILPackageId -Name $name
+    $id = ConvertTo-PackageId -Name $name
     if (-not $id) { $id = 'logiciel' }
     return [pscustomobject]@{
         Path = $Path; Name = $name; Id = $id; Version = $version

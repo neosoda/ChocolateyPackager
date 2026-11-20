@@ -1,0 +1,14 @@
+CHOCOLATEY PACKAGER 0.3.0 (BETA)
+================================
+
+FR : Décompressez tout le dossier sous Windows et lancez Start.cmd.
+Sélectionnez votre installateur MSI / EXE, vérifiez la version et les
+arguments silencieux, puis cliquez sur « Créer le paquet .nupkg ».
+Testez ensuite une installation avec Chocolatey sur une machine de test.
+
+EN: Extract the full folder on Windows and run Start.cmd.
+Choose an MSI / EXE, review version and silent switches, then select
+"Créer le paquet .nupkg" (Create package).
+Validate installation with Chocolatey on a disposable Windows test machine.
+
+Full documentation: README.md (FR) / README.en.md (EN).

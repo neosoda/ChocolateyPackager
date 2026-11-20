@@ -1,146 +1,91 @@
 <div align="center">
 
-# 📦 Chocolatey Packager
+# Chocolatey Packager
 
-**Turn a Windows MSI or EXE installer into a self-contained Chocolatey package using a simple desktop GUI.**
+**Build Chocolatey packages from Windows MSI and EXE installers.**
 
-[![Version](https://img.shields.io/badge/version-0.3.0-blue?style=flat-square)](https://github.com/neosoda/ChocolateyPackager)
-![Windows](https://img.shields.io/badge/platform-Windows-0078D4?style=flat-square&logo=windows)
-![PowerShell](https://img.shields.io/badge/PowerShell-5.1-5391FE?style=flat-square&logo=powershell)
-![Status](https://img.shields.io/badge/status-beta-orange?style=flat-square)
+[![Version](https://img.shields.io/badge/version-0.3.0-334155)](https://github.com/neosoda/ChocolateyPackager)
+![Windows](https://img.shields.io/badge/Windows-10%2F11%2FServer-0078D4)
+![PowerShell](https://img.shields.io/badge/PowerShell-5.1-4674BE)
+![Status](https://img.shields.io/badge/status-beta-D97706)
 
 [Français](README.md) · **English**
 
 </div>
 
----
+Chocolatey Packager is a portable Windows tool that creates `.nupkg` files without requiring Chocolatey on the packaging machine. Select an installer, review its package ID, version and silent switches, then choose the output directory.
 
-## Why this project?
+## Features
 
-Building a Chocolatey package should not require a complicated toolchain. **Chocolatey Packager** is a lightweight, portable Windows application: select a `.msi` or `.exe`, review its metadata and silent-install arguments, then generate a `.nupkg` with the installer embedded.
+- Windows Forms GUI with file picker and drag-and-drop.
+- MSI metadata inspection and static EXE signature analysis, **without launching the installer**.
+- Suggested silent switches for MSI, Inno Setup, NSIS, WiX Burn and some known installers. Uncertain detections are clearly flagged.
+- Self-contained packages with bundled installers, `.nuspec` manifests and `chocolateyInstall.ps1`.
+- SHA-256 integrity checks during packaging and publication.
+- Local or network-share output, without overwriting existing packages.
 
-Originally built for **software deployment in school computer labs** with internal repositories and restricted internet access, it is equally useful for homelabs and enterprise IT teams. **FOG is optional**; the packager works independently.
+**Requirements:** Windows 10, 11 or Server with Windows PowerShell 5.1. Chocolatey, NuGet, Python and Docker are **not** required to *build* packages.
 
-## ✨ Features in v0.3.0
+## Getting started
 
-| Feature | Description |
-| --- | --- |
-| 🪟 Windows GUI | WinForms app with file picker and drag-and-drop |
-| 🔎 Static analysis | MSI metadata extraction and EXE signature scanning **without executing the installer** |
-| 🧩 Silent switches | Suggestions for MSI (`/qn`), Inno Setup, NSIS, WiX Burn and Everything; partial identification of other engines |
-| 🏷️ Clean IDs | Package ID normalization, with the former `-cmil` suffix removed |
-| 📦 Embedded installers | NuSpec manifest, Chocolatey install script and bundled MSI/EXE |
-| 🔐 SHA-256 | Integrity checks for the source file, packaged installer and destination copy |
-| 🗂️ Local or SMB output | Choose any writable folder; existing package versions are never silently overwritten |
-| 🧪 Structural tests | A non-destructive test script for package generation |
+1. Download [the repository ZIP](https://github.com/neosoda/ChocolateyPackager/archive/refs/heads/main.zip) and extract it.
+2. Double-click **`Start.cmd`**.
+3. Select an `.msi` or `.exe` installer.
+4. Review the package ID, version, silent arguments and output directory.
+5. Click **Créer le paquet .nupkg** (*Create package*). The current interface is in French.
 
-**Chocolatey, NuGet, Docker and Python are not required on the machine _building_ packages.** The app uses Windows PowerShell 5.1 and built-in Windows/.NET components.
+The output file uses the format `packageid.version.nupkg`.
 
-> [!IMPORTANT]
-> **Beta v0.3.0.** A structurally valid package does **not** guarantee a successful or silent installation. EXE arguments inferred from signatures must be verified against vendor documentation and tested in a VM. Installer analysis never executes the selected binary.
+### Example
 
-## 🚀 Quick start
+For `Everything-1.4.1.1032.x64-Setup.exe`, the detector may suggest `everything`, version `1.4.1.1032`, and `/S`. The output is `everything.1.4.1.1032.nupkg`.
 
-1. Use **[Code → Download ZIP](https://github.com/neosoda/ChocolateyPackager/archive/refs/heads/main.zip)** or clone the repository.
-2. Extract **all** files into one directory on **Windows 10/11 or Windows Server** with **Windows PowerShell 5.1**.
-3. Double-click **`Lancer.cmd`**.
-4. Select or drag in an MSI or EXE installer.
-5. Review the package ID, version, **silent arguments** and output directory.
-6. Click **Créer le paquet .nupkg** (*Create package*).
+Confirm silent switches using vendor documentation and a test installation.
 
-The output is `packageid.version.nupkg` in the selected directory. The current GUI is in French.
+## Validating packages
 
-### Example: Everything
-
-| Field | Example |
-| --- | --- |
-| Package ID | `everything` |
-| Version | `1.4.1.1032` |
-| EXE silent arguments | `/S` |
-| Output | `C:\Chocolatey-Packages` or an SMB share |
-| Package | `everything.1.4.1.1032.nupkg` |
-
-**Still test the actual installation in a disposable VM.**
-
-## 🏗️ Under the hood
-
-```text
-Lancer.cmd
-   └── CMIL-Packager.ps1              WinForms GUI
-        ├── Detecteur-Installateur.ps1 static installer analysis
-        └── Moteur-Packager.ps1        NuSpec + Chocolatey script + MSI/EXE
-                                     SHA-256 checks + package output
-```
-
-A generated `.nupkg` includes:
-
-```text
-myapp.1.2.3.nupkg
-├── myapp.nuspec
-└── tools/
-    ├── chocolateyInstall.ps1
-    ├── installer.exe (or installer.msi)
-    └── packager-info.json
-```
-
-Package generation is **offline**, but embedding a **web installer** does not remove the installer's runtime download requirements. Prefer complete/offline installers.
-
-## 🧪 Validation
-
-Run the bundled structural tests from the project directory:
+Run the built-in **structural test**, which does not install any application:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\Test-Automatique.ps1"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\SelfTest.ps1"
 ```
 
-The tests create a **fake EXE** to inspect detection, NuSpec creation, packaged files and hashes. They **do not** install software or validate Chocolatey/FOG behavior.
-
-On a **Windows test VM with Chocolatey installed**, try your newly generated package:
+To validate an **actual installation**, use a Windows test machine with Chocolatey installed:
 
 ```powershell
-choco install everything --version 1.4.1.1032 --source="C:\Chocolatey-Packages" -y --no-progress
+choco install everything --version 1.4.1.1032 --source="C:\Packages" -y --no-progress
 ```
 
-Replace the path with your output repository. Inspect Chocolatey logs, exit codes, application state and potential reboot behavior. Validate upgrades and removal before mass deployment.
+Adjust the path and package ID. Check exit codes and logs, and test upgrade/uninstall scenarios before wider deployment.
 
-## 🏢 Internal repository & FOG integration
+## Repository layout
 
-The repository can be a directory containing `.nupkg` files, e.g. `\\FILESERVER\Deploy$\CHOCOLATEY`. No organization-specific server name is hardcoded into the application.
+```text
+Start.cmd                 GUI launcher
+ChocolateyPackager.ps1    Windows Forms application
+InstallerDetector.ps1     MSI / EXE static analysis
+PackageBuilder.ps1        Package generation and verification
+SelfTest.ps1              Non-destructive structural tests
+QUICKSTART.txt            FR/EN quick start
+```
 
-For a **FOG 1.6 installation with Software/Chocolatey management** configured, an example software record uses:
+Generated packages include `packageid.nuspec`, `tools/chocolateyInstall.ps1`, the embedded installer and `tools/packager-info.json`.
 
-| FOG field | Value |
-| --- | --- |
-| Backend | `Chocolatey` |
-| Package | `everything` |
-| Source | `\\FILESERVER\Deploy$\CHOCOLATEY` |
-| Desired state | `Present` |
+## Current limitations (0.3.0)
 
-**Target requirements:** Chocolatey installed/configured, FOG Software module enabled and repository access from the **agent's security context** (often `SYSTEM`, authenticating as the computer account over SMB). This project does not install Chocolatey or configure FOG automatically.
+- **There is no universal silent switch for EXE installers.** Detection is a suggestion, not a guarantee. Check vendor documentation when results are uncertain.
+- Bundling a web installer does not remove its runtime network dependencies.
+- The built-in tests verify **package structure and integrity**, not actual installations. Windows + Chocolatey end-to-end tests are still needed.
+- Custom uninstall logic for each application is not generated yet.
+- Check third-party licensing and redistribution rights before sharing packages that include proprietary installers.
 
-For larger deployments, a dedicated internal **HTTP(S) Chocolatey/NuGet repository** is generally preferable to a plain SMB folder.
+## Roadmap
 
-## ⚠️ Current limitations
+- Automated Windows installation tests across multiple setup engines.
+- Uninstall and upgrade helpers.
+- Improved silent-switch detection with evidence and confidence levels.
+- Script previews and publishing to Chocolatey/NuGet feeds.
 
-- There is **no universal silent switch for arbitrary EXEs**. InstallShield, Advanced Installer and others may require vendor-specific parameters; the app deliberately avoids guessing where evidence is weak.
-- Wrapping a **web bootstrapper** does not create a fully offline installation.
-- v0.3.0 **does not generate full custom uninstall logic for every EXE**; upgrades and removals need separate validation.
-- File-name-based metadata may be wrong. **Review IDs, versions, licensing and vendor provenance.**
-- Included tests check **package structure only**. Real Windows + Chocolatey + FOG end-to-end validation is still required.
-- Respect installer redistribution rights; do not publish proprietary installers, credentials or private infrastructure information.
+Questions and contributions: [GitHub Issues](https://github.com/neosoda/ChocolateyPackager/issues).
 
-## 🗺️ Roadmap
-
-- [ ] Validate real Chocolatey installs across multiple installer engines.
-- [ ] Add uninstall and upgrade helpers.
-- [ ] Improve silent-switch detection with vendor references and explicit confidence levels.
-- [ ] Add Windows CI tests and a NuSpec/package preview.
-- [ ] Support controlled publication to internal HTTP(S) feeds.
-
-## 🤝 Contributing
-
-Bug reports, difficult installer cases and pull requests are welcome. Use [GitHub Issues](https://github.com/neosoda/ChocolateyPackager/issues), and keep commercial binaries, credentials and internal details out of public tickets.
-
----
-
-<sub>Chocolatey Packager is an independent community project, not affiliated with Chocolatey Software, FOG Project or installer vendors. Current version: **0.3.0 beta**.</sub>
+<sub>Independent community project; not affiliated with Chocolatey Software. **0.3.0 beta**: validate on a test machine before deployment.</sub>
