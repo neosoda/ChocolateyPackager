@@ -109,7 +109,7 @@ Generated packages include `packageid.nuspec`, `tools/chocolateyInstall.ps1`, th
 
 For more details: [official Chocolatey package creation documentation](https://docs.chocolatey.org/en-us/create/create-packages/), [validation guide](docs/VALIDATION.md) and [French README](README.md).
 
-## Current limitations (0.3.0)
+## Current limitations and testing
 
 - **There is no universal silent switch for EXE installers.** Detection is a suggestion, not a guarantee. Check vendor documentation when results are uncertain.
 - Bundling a web installer does not remove its runtime network dependencies.
@@ -126,4 +126,4 @@ For more details: [official Chocolatey package creation documentation](https://d
 
 Questions and contributions: [GitHub Issues](https://github.com/neosoda/ChocolateyPackager/issues).
 
-<sub>Independent community project; not affiliated with Chocolatey Software. **0.3.0 beta**: validate on a test machine before deployment.</sub>
+<sub>Independent community project; not affiliated with Chocolatey Software. **0.4.0-beta.1** (single EXE), legacy scripts v0.3.0: validate on a test machine before deployment.</sub>
