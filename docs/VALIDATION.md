@@ -7,7 +7,7 @@ Le validateur est **statique et hors ligne**. Il n'extrait ni n'exécute un inst
 Sur Windows PowerShell 5.1, dans le dossier du projet :
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\Validateur-Paquet.ps1" -PackagePath "C:\Packages\monlogiciel.1.0.0.nupkg"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\Verifier-Paquet.ps1" -PackagePath "C:\Packages\monlogiciel.1.0.0.nupkg"
 ```
 
 Le processus renvoie le **code 1** lorsqu'une erreur bloquante est détectée.
