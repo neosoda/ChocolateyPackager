@@ -1,8 +1,8 @@
 <div align="center">
 
-# Chocolatey Packager
+# Chocolatey Packager — Windows GUI Chocolatey Package Builder
 
-**Build Chocolatey packages from Windows MSI and EXE installers.**
+**Create Chocolatey `.nupkg` packages from MSI and EXE installers with a graphical Windows package builder — no PowerShell scripting required.**
 
 [![Version](https://img.shields.io/badge/version-0.3.0-334155)](https://github.com/neosoda/ChocolateyPackager)
 ![Windows](https://img.shields.io/badge/Windows-10%2F11%2FServer-0078D4)
@@ -13,7 +13,7 @@
 
 </div>
 
-Chocolatey Packager is a portable Windows tool that creates `.nupkg` files without requiring Chocolatey on the packaging machine. Select an installer, review its package ID, version and silent switches, then choose the output directory.
+Looking for a **Chocolatey package builder GUI** or a way to **create a Chocolatey package from an EXE or MSI**? Chocolatey Packager is a portable Windows desktop tool for generating `.nupkg` files. Select an installer, review package metadata and suggested silent switches, then export the package to a local directory or network share. **Chocolatey is not required on the build machine**, but is needed on target machines that install the package.
 
 ## Features
 
@@ -26,7 +26,7 @@ Chocolatey Packager is a portable Windows tool that creates `.nupkg` files witho
 
 **Requirements:** Windows 10, 11 or Server with Windows PowerShell 5.1. Chocolatey, NuGet, Python and Docker are **not** required to *build* packages.
 
-## Development branch additions
+## Package validation and editable metadata
 
 The GUI now offers editable **publisher, description and HTTPS project URL** fields, and displays the MSI **UpgradeCode** when available.
 
@@ -38,11 +38,11 @@ Run a static validation without installing software:
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\Validate-Package.ps1" -PackagePath "C:\Packages\example.1.0.0.nupkg"
 ```
 
-See [Validation and VM testing (FR)](docs/VALIDATION.md) and [References and licensing](docs/REFERENCES.md). **These changes still require a real Windows test**; static validation cannot certify an actual installation.
+See [Validation and VM testing (FR)](docs/VALIDATION.md) and [References and licensing](docs/REFERENCES.md). **These features still require end-to-end Windows testing**; static validation cannot certify an actual installation.
 
-## Getting started
+## Create a Chocolatey package from an EXE or MSI
 
-1. Download [the repository ZIP](https://github.com/neosoda/ChocolateyPackager/archive/refs/heads/main.zip) and extract it.
+1. Download [Chocolatey Packager for Windows (repository ZIP)](https://github.com/neosoda/ChocolateyPackager/archive/refs/heads/main.zip) and extract it.
 2. Double-click **`Start.cmd`**.
 3. Select an `.msi` or `.exe` installer.
 4. Review the package ID, version, silent arguments and output directory.
@@ -56,7 +56,7 @@ For `Everything-1.4.1.1032.x64-Setup.exe`, the detector may suggest `everything`
 
 Confirm silent switches using vendor documentation and a test installation.
 
-## Validating packages
+## Validate and test a Chocolatey `.nupkg` package
 
 Run the built-in **structural test**, which does not install any application:
 
@@ -79,11 +79,25 @@ Start.cmd                 GUI launcher
 ChocolateyPackager.ps1    Windows Forms application
 InstallerDetector.ps1     MSI / EXE static analysis
 PackageBuilder.ps1        Package generation and verification
+PackageValidator.ps1      Static package validation
+Validate-Package.ps1      Command-line .nupkg validation
 SelfTest.ps1              Non-destructive structural tests
 QUICKSTART.txt            FR/EN quick start
 ```
 
 Generated packages include `packageid.nuspec`, `tools/chocolateyInstall.ps1`, the embedded installer and `tools/packager-info.json`.
+
+## Frequently asked questions about Chocolatey package creation
+
+**How do I convert an EXE or MSI installer into a Chocolatey package?** Run `Start.cmd`, pick your installer, review the package ID, version and silent installation arguments, then select **Create package .nupkg**.
+
+**Do I need Chocolatey installed to build a package?** No. The packager uses Windows PowerShell 5.1 on the build machine. Chocolatey is needed on the computer where you install the generated package.
+
+**Will the detected EXE silent switches always work?** No. Detection is static and must be verified on a disposable Windows test VM.
+
+**Can I use this to deploy software across a business network?** The tool can output a package to a local folder or network share. Check deployment compatibility, access rights and software redistribution licenses first.
+
+For more details: [official Chocolatey package creation documentation](https://docs.chocolatey.org/en-us/create/create-packages/), [validation guide](docs/VALIDATION.md) and [French README](README.md).
 
 ## Current limitations (0.3.0)
 
