@@ -126,4 +126,12 @@ Pour approfondir : [documentation officielle de création des packages Chocolate
 
 Pour signaler un problème ou proposer une amélioration : [GitHub Issues](https://github.com/neosoda/ChocolateyPackager/issues).
 
+## Licence et réutilisation
+
+Le **code original** de ChocolateyPackager est proposé sous **Apache License 2.0 + Commons Clause 1.0** (licence *source-available*, **non reconnue comme open source**). Voir [LICENSE](LICENSE).
+
+L'utilisation personnelle, l'auto-hébergement non commercial et les modifications sont autorisés dans les limites du texte de licence. La revente du logiciel ou d'un service payant tirant **entièrement ou substantiellement** sa valeur de ses fonctionnalités nécessite une autorisation écrite du titulaire des droits. **La Commons Clause ne prohibe pas tous les SaaS commerciaux** : les produits apportant une valeur substantielle supplémentaire peuvent être autorisés.
+
+Les logiciels, bibliothèques, contenus et installateurs de tiers restent soumis à **leurs propres licences**, qui ne sont pas remplacées par celle du projet.
+
 <sub>Projet indépendant, sans affiliation avec Chocolatey Software. Version **0.4.0-beta.1** (EXE autonome), scripts historiques v0.3.0 : à valider sur machine de test avant tout déploiement.</sub>
