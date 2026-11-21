@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="docs/assets/chocolatey-packager-hero.svg" width="100%" alt="Chocolatey Packager — illustration conceptuelle du flux MSI/EXE vers package Chocolatey NUPKG">
+
 # Chocolatey Packager — générateur graphique de packages Chocolatey pour Windows
 
 **Chocolatey package builder avec interface graphique Windows : convertissez un installateur MSI ou EXE en package `.nupkg`, sans écrire de scripts PowerShell.**
@@ -9,9 +11,15 @@
 ![.NET](https://img.shields.io/badge/.NET-10-512BD4)
 ![Statut](https://img.shields.io/badge/statut-b%C3%AAta-D97706)
 
-**Français** · [English](README.en.md)
+**Français** · [English](README.en.md) · [Télécharger la bêta](https://github.com/neosoda/ChocolateyPackager/releases/tag/v0.4.0-beta.1) · [Documentation](docs/EXECUTABLE.md)
 
 </div>
+
+| 🧩 **Créer** | 🔎 **Contrôler** | 📦 **Distribuer** |
+| :--- | :--- | :--- |
+| Importez un MSI/EXE et préparez les métadonnées nécessaires. | Vérifiez le package et les empreintes SHA-256. | Exportez un `.nupkg` pour votre dépôt Chocolatey interne. |
+
+> La bannière est une **illustration conceptuelle**, pas une capture réelle de l'interface WinForms.
 
 Vous cherchez **comment créer un package Chocolatey à partir d'un EXE ou d'un MSI** ? Chocolatey Packager est un créateur de paquets Chocolatey avec interface graphique (GUI) pour Windows 10, Windows 11 et Windows Server. Sélectionnez l'installateur, vérifiez les informations et les paramètres silencieux proposés, puis générez un fichier `.nupkg` pour votre dépôt local ou réseau. **Chocolatey n'est pas nécessaire sur le poste de création** ; il reste requis sur les postes qui installent le paquet.
 
@@ -24,6 +32,10 @@ La version bêta est disponible sous la forme de **ChocolateyPackager.exe**, une
 Documentation et commande de compilation : **[Créer l'EXE unique et le tester](docs/EXECUTABLE.md)**.
 
 L'ancienne application PowerShell (`Start.cmd`) reste provisoirement disponible en repli pour ne pas interrompre les utilisateurs tant que la version C# n'a pas été validée.
+
+## Pourquoi utiliser un générateur de package Chocolatey avec interface graphique ?
+
+Pour les administrateurs Windows, les intégrateurs et les équipes de déploiement, l'objectif est de **préparer des paquets reproductibles** à partir d'installateurs existants, sans rédiger entièrement les scripts à la main. Les paramètres silencieux proposés doivent être **vérifiés en environnement de test** avant une diffusion à grande échelle.
 
 ## Fonctionnalités
 
